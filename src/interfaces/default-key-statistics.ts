@@ -1,0 +1,38 @@
+export interface IDefaultKeyStatistics {
+  maxAge: number;
+  priceHint: number;
+  enterpriseValue: number;
+  forwardPE: number;
+  profitMargins: number;
+  floatShares: number;
+  sharesOutstanding: number;
+  sharesShort: number;
+  sharesShortPriorMonth: number;
+  sharesShortPreviousMonthDate: number;
+  dateShortInterest: number;
+  sharesPercentSharesOut: number;
+  heldPercentInsiders: number;
+  heldPercentInstitutions: number;
+  shortRatio: number;
+  shortPercentOfFloat: number;
+  beta: number | { raw: number; fmt: string };
+  category?: string;
+  bookValue: number;
+  priceToBook: number;
+  fundFamily?: any;
+  legalType?: any;
+  lastFiscalYearEnd: string;
+  nextFiscalYearEnd: string;
+  mostRecentQuarter: string;
+  earningsQuarterlyGrowth: number;
+  netIncomeToCommon: number;
+  trailingEps: number;
+  forwardEps: number;
+  pegRatio: number;
+  lastSplitFactor: string;
+  lastSplitDate: string;
+  enterpriseToRevenue: number;
+  enterpriseToEbitda: number;
+  '52WeekChange': number;
+  SandP52WeekChange: number;
+}

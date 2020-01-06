@@ -1,0 +1,20 @@
+{
+  "name": "yahoo-finance-data-miner",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "mine": "npm run build && node ./dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -r ./dist && tsc",
+    "train": "npm run build && node ./dist/train.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tensorflow/tfjs-node": "^1.5.1",
+    "@types/mathjs": "^6.0.2",
+    "mathjs": "^6.4.0",
+    "yahoo-finance": "^0.3.6"
+  }
+}

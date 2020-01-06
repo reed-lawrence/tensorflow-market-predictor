@@ -1,0 +1,36 @@
+export interface IPrice {
+  maxAge: number;
+  preMarketChangePercent: number;
+  preMarketChange: number;
+  preMarketTime: string;
+  preMarketPrice: number;
+  preMarketSource: string;
+  regularMarketChangePercent: number;
+  regularMarketChange: number;
+  regularMarketTime: string;
+  priceHint: number;
+  regularMarketPrice: number;
+  regularMarketDayHigh: number;
+  regularMarketDayLow: number;
+  regularMarketVolume: number;
+  averageDailyVolume10Day: number;
+  averageDailyVolume3Month: number;
+  regularMarketPreviousClose: number;
+  regularMarketSource: string;
+  regularMarketOpen: number;
+  exchange: string;
+  exchangeName: string;
+  exchangeDataDelayedBy: number;
+  marketState: string;
+  quoteType: string;
+  symbol: string;
+  underlyingSymbol?: string;
+  shortName: string;
+  longName: string;
+  currency: string;
+  quoteSourceName: string;
+  currencySymbol: string;
+  fromCurrency?: string;
+  lastMarket?: string;
+  marketCap: number;
+}
