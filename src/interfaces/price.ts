@@ -17,7 +17,7 @@ export interface IPrice {
   averageDailyVolume3Month: number;
   regularMarketPreviousClose: number;
   regularMarketSource: string;
-  regularMarketOpen: number;
+  regularMarketOpen: number | { raw: number; fmt: string };
   exchange: string;
   exchangeName: string;
   exchangeDataDelayedBy: number;
