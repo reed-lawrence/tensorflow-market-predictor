@@ -53,7 +53,7 @@ function getData() {
 exports.getData = getData;
 function train() {
     return __awaiter(this, void 0, void 0, function () {
-        var beta_vals, trending_vals, y_vals, shortRatio_vals, preMarketChange_vals, open_vals, data, _i, data_1, entry, open_1, yVal, beta_1, trending_1, shortRatio_1, preMarketChange_1, ys, beta, trending, shortRatio, preMarketChange, a, b, c, s, p, o, f, loss, learningRate, optimizer, i, preds, diffs, percents, avgAbsPercent;
+        var beta_vals, trending_vals, y_vals, shortRatio_vals, preMarketChange_vals, open_vals, data, _i, data_1, entry, open_1, yVal, beta_1, trending_1, shortRatio_1, preMarketChange_1, ys, beta, trending, shortRatio, preMarketChange, open, a, b, c, s, p, o, f, loss, learningRate, optimizer, i, preds, diffs, percents, avgAbsPercent;
         return __generator(this, function (_a) {
             console.clear();
             beta_vals = [];
@@ -107,13 +107,14 @@ function train() {
             trending = tf.tensor1d(trending_vals);
             shortRatio = tf.tensor1d(shortRatio_vals);
             preMarketChange = tf.tensor1d(preMarketChange_vals);
-            a = tf.scalar(Math.random()).variable();
-            b = tf.scalar(Math.random()).variable();
-            c = tf.scalar(Math.random()).variable();
-            s = tf.scalar(Math.random()).variable();
-            p = tf.scalar(Math.random()).variable();
-            o = tf.scalar(Math.random()).variable();
-            f = function (_beta, _trending, _shortRatio, _preMarketChange) {
+            open = tf.tensor1d(open_vals);
+            a = tf.scalar(0).variable();
+            b = tf.scalar(0).variable();
+            c = tf.scalar(0).variable();
+            s = tf.scalar(0).variable();
+            p = tf.scalar(0).variable();
+            o = tf.scalar(0).variable();
+            f = function (_beta, _trending, _shortRatio, _preMarketChange, _open) {
                 var output = a.mul(_beta)
                     .add(b.mul(_trending))
                     .add(s.mul(_shortRatio))
@@ -126,10 +127,10 @@ function train() {
             learningRate = 0.001;
             optimizer = tf.train.sgd(learningRate);
             // Train the model.
-            for (i = 0; i < 10000; i++) {
-                optimizer.minimize(function () { return loss(f(beta, trending, shortRatio, preMarketChange), ys); });
+            for (i = 0; i < 1000; i++) {
+                optimizer.minimize(function () { return loss(f(beta, trending, shortRatio, preMarketChange, open), ys); });
             }
-            preds = f(beta, trending, shortRatio, preMarketChange).dataSync();
+            preds = f(beta, trending, shortRatio, preMarketChange, open).dataSync();
             diffs = [];
             percents = [];
             preds.forEach(function (pred, i) {
@@ -142,11 +143,12 @@ function train() {
                     percent = (diff / Math.abs(expected)) * 100;
                     percents.push(Math.abs(percent));
                 }
-                // console.log(`i: ${i}, pred: ${round(expected, 3)}, actual: ${round(actual, 3)}, diff: ${round(diff, 3)}, percent: ${round(percent, 3)}%`);
+                console.log("i: " + i + ", pred: " + mathjs_1.round(expected, 3) + ", actual: " + mathjs_1.round(actual, 3) + ", diff: " + mathjs_1.round(diff, 3) + ", percent: " + mathjs_1.round(percent, 3) + "%");
                 // console.log(`${round(expected, 3)},${round(actual, 3)}`);
             });
             console.log();
             avgAbsPercent = mathjs_1.round(mathjs_1.mean(percents), 3);
+            console.log("a: " + a.dataSync() + ", b: " + b.dataSync() + ", c: " + c.dataSync());
             console.log("Avg abs difference: $" + mathjs_1.round(mathjs_1.mean(diffs.map(function (d) { return Math.abs(d); })), 2));
             console.log("Avg absolute prediction variance: " + avgAbsPercent + "%");
             console.log("Std Deviation: " + mathjs_1.round(mathjs_1.std(diffs), 3));

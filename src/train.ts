@@ -72,31 +72,32 @@ export async function train() {
   const trending = tf.tensor1d(trending_vals);
   const shortRatio = tf.tensor1d(shortRatio_vals);
   const preMarketChange = tf.tensor1d(preMarketChange_vals);
+  const open = tf.tensor1d(open_vals);
 
 
   // beta
-  const a = tf.scalar(Math.random()).variable();
+  const a = tf.scalar(0).variable();
 
   // trending
-  const b = tf.scalar(Math.random()).variable();
+  const b = tf.scalar(0).variable();
 
   // constant adjuster
-  const c = tf.scalar(Math.random()).variable();
+  const c = tf.scalar(0).variable();
 
   // short ratio - not very significant
-  const s = tf.scalar(Math.random()).variable();
+  const s = tf.scalar(0).variable();
 
   // pre market change
-  const p = tf.scalar(Math.random()).variable();
+  const p = tf.scalar(0).variable();
 
   // open
-  const o = tf.scalar(Math.random()).variable();
+  const o = tf.scalar(0).variable();
 
   // y = a * x^2 + b * x + c
   // const f = (x: tf.Tensor1D) => a.mul(x.square()).add(b.mul(x)).add(c);
 
   // (high - open) = (beta * a) + (trending * b) + c
-  const f = (_beta: tf.Tensor1D, _trending: tf.Tensor1D, _shortRatio: tf.Tensor1D, _preMarketChange: tf.Tensor1D) => {
+  const f = (_beta: tf.Tensor1D, _trending: tf.Tensor1D, _shortRatio: tf.Tensor1D, _preMarketChange: tf.Tensor1D, _open: tf.Tensor1D) => {
     const output = a.mul(_beta)
       .add(b.mul(_trending))
       .add(s.mul(_shortRatio))
@@ -112,13 +113,12 @@ export async function train() {
   const optimizer = tf.train.sgd(learningRate);
 
   // Train the model.
-  for (let i = 0; i < 10000; i++) {
-    optimizer.minimize(() => loss(f(beta, trending, shortRatio, preMarketChange), ys));
+  for (let i = 0; i < 1000; i++) {
+    optimizer.minimize(() => loss(f(beta, trending, shortRatio, preMarketChange, open), ys));
   }
 
   // Make predictions.
-  // console.log(`a: ${a.dataSync()}, b: ${b.dataSync()}, c: ${c.dataSync()}`);
-  const preds = f(beta, trending, shortRatio, preMarketChange).dataSync();
+  const preds = f(beta, trending, shortRatio, preMarketChange, open).dataSync();
 
   const diffs: number[] = [];
   const percents: number[] = [];
@@ -133,12 +133,13 @@ export async function train() {
       percent = (diff / Math.abs(expected)) * 100;
       percents.push(Math.abs(percent));
     }
-    // console.log(`i: ${i}, pred: ${round(expected, 3)}, actual: ${round(actual, 3)}, diff: ${round(diff, 3)}, percent: ${round(percent, 3)}%`);
+    console.log(`i: ${i}, pred: ${round(expected, 3)}, actual: ${round(actual, 3)}, diff: ${round(diff, 3)}, percent: ${round(percent, 3)}%`);
     // console.log(`${round(expected, 3)},${round(actual, 3)}`);
 
   });
   console.log();
   const avgAbsPercent = round(mean(percents), 3) as number;
+  console.log(`a: ${a.dataSync()}, b: ${b.dataSync()}, c: ${c.dataSync()}`);
   console.log(`Avg abs difference: $${round(mean(diffs.map(d => Math.abs(d))), 2)}`)
   console.log(`Avg absolute prediction variance: ${avgAbsPercent}%`);
   console.log(`Std Deviation: ${round(std(diffs), 3)}`);
