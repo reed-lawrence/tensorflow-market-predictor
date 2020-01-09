@@ -7,7 +7,9 @@
     "mine": "npm run build && node ./dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rm -r ./dist && tsc",
-    "train": "npm run build && node ./dist/train.js"
+    "train": "npm run build && node ./dist/train.js",
+    "get-data": "npm run build && node ./dist/get-current-data.js",
+    "predict": "npm run build && node ./dist/predict.js"
   },
   "author": "",
   "license": "ISC",

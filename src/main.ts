@@ -1,25 +1,14 @@
 import * as fs from 'fs';
-
-import { IDefaultKeyStatistics } from './interfaces/default-key-statistics';
-import { IEarnings } from './interfaces/earnings';
-import { IPrice } from './interfaces/price';
-import { ISummaryDetail } from './interfaces/summary-detail';
-import { symbols } from './symbols';
+import { Utils } from './utils';
+import { IApiResult } from './interfaces/api-result';
 
 const yahooFinance = require('yahoo-finance');
-
-export type IApiResult = { summaryDetail: ISummaryDetail, defaultKeyStatistics: IDefaultKeyStatistics, earnings: IEarnings, price: IPrice };
-
 export async function main() {
   console.clear();
 
   console.log('Creating distinct list of symbols');
-  const symbols_distinct: string[] = [];
-  for (const symbol of symbols) {
-    if (symbols_distinct.findIndex(s => s === symbol) === -1) {
-      symbols_distinct.push(symbol);
-    }
-  }
+  const symbols_distinct: string[] = Utils.distinctSymbols();
+
 
   console.log('Opening data file');
   const ds: IApiResult[] = JSON.parse(fs.readFileSync('./storage/ds.json', { encoding: 'utf8' }));

@@ -43,25 +43,22 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var fs = __importStar(require("fs"));
 var utils_1 = require("./utils");
 var yahooFinance = require('yahoo-finance');
-function main() {
+var fs = __importStar(require("fs"));
+function getCurrentData() {
     return __awaiter(this, void 0, void 0, function () {
-        var symbols_distinct, ds, _i, symbols_distinct_1, symbol, results;
+        var symbols, ds, _i, symbols_1, symbol, results;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.clear();
-                    console.log('Creating distinct list of symbols');
-                    symbols_distinct = utils_1.Utils.distinctSymbols();
-                    console.log('Opening data file');
-                    ds = JSON.parse(fs.readFileSync('./storage/ds.json', { encoding: 'utf8' }));
-                    _i = 0, symbols_distinct_1 = symbols_distinct;
+                    symbols = utils_1.Utils.distinctSymbols();
+                    ds = [];
+                    _i = 0, symbols_1 = symbols;
                     _a.label = 1;
                 case 1:
-                    if (!(_i < symbols_distinct_1.length)) return [3 /*break*/, 4];
-                    symbol = symbols_distinct_1[_i];
+                    if (!(_i < symbols_1.length)) return [3 /*break*/, 4];
+                    symbol = symbols_1[_i];
                     console.log("Getting data for " + symbol + "...");
                     return [4 /*yield*/, yahooFinance.quote({
                             symbol: symbol,
@@ -76,11 +73,16 @@ function main() {
                     _i++;
                     return [3 /*break*/, 1];
                 case 4:
-                    console.log('Writing to file...');
-                    fs.writeFileSync('./storage/ds.json', JSON.stringify(ds));
+                    fs.writeFileSync('./storage/current-data.json', JSON.stringify(ds));
                     return [2 /*return*/];
             }
         });
     });
 }
-exports.main = main;
+exports.getCurrentData = getCurrentData;
+getCurrentData().then(function () {
+    console.clear();
+    console.log('Done!');
+}).catch(function (err) {
+    console.error(err);
+});

@@ -44,43 +44,58 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = __importStar(require("fs"));
-var utils_1 = require("./utils");
-var yahooFinance = require('yahoo-finance');
-function main() {
+function rank() {
     return __awaiter(this, void 0, void 0, function () {
-        var symbols_distinct, ds, _i, symbols_distinct_1, symbol, results;
+        var currentData, subsamples, _i, subsamples_1, sample;
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    console.clear();
-                    console.log('Creating distinct list of symbols');
-                    symbols_distinct = utils_1.Utils.distinctSymbols();
-                    console.log('Opening data file');
-                    ds = JSON.parse(fs.readFileSync('./storage/ds.json', { encoding: 'utf8' }));
-                    _i = 0, symbols_distinct_1 = symbols_distinct;
-                    _a.label = 1;
-                case 1:
-                    if (!(_i < symbols_distinct_1.length)) return [3 /*break*/, 4];
-                    symbol = symbols_distinct_1[_i];
-                    console.log("Getting data for " + symbol + "...");
-                    return [4 /*yield*/, yahooFinance.quote({
-                            symbol: symbol,
-                            modules: ['price', 'summaryDetail', 'defaultKeyStatistics', 'earnings']
-                        })];
-                case 2:
-                    results = _a.sent();
-                    ds.push(results);
-                    console.clear();
-                    _a.label = 3;
-                case 3:
-                    _i++;
-                    return [3 /*break*/, 1];
-                case 4:
-                    console.log('Writing to file...');
-                    fs.writeFileSync('./storage/ds.json', JSON.stringify(ds));
-                    return [2 /*return*/];
+            currentData = JSON.parse(fs.readFileSync('./storage/current-data.json', { encoding: 'utf8' }));
+            subsamples = currentData.map(function (d) {
+                var beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0;
+                if (typeof d.defaultKeyStatistics.beta === 'number') {
+                    beta = d.defaultKeyStatistics.beta;
+                }
+                else if (d.defaultKeyStatistics.beta && d.defaultKeyStatistics.beta.raw) {
+                    beta = d.defaultKeyStatistics.beta.raw;
+                }
+                if (typeof d.price.regularMarketPrice === 'number' && typeof d.price.regularMarketPreviousClose === 'number') {
+                    trending = d.price.regularMarketPrice - d.price.regularMarketPreviousClose;
+                }
+                if (d.defaultKeyStatistics.shortRatio && typeof d.defaultKeyStatistics.shortRatio === 'number') {
+                    shortRatio = d.defaultKeyStatistics.shortRatio;
+                }
+                if (d.price.preMarketChange && typeof d.price.preMarketChange === 'number') {
+                    preMarketChange = d.price.preMarketChange;
+                }
+                return {
+                    symbol: d.price.symbol,
+                    beta: beta,
+                    trending: trending,
+                    shortRatio: shortRatio,
+                    preMarketChange: preMarketChange,
+                    highDelta: 0
+                };
+            });
+            for (_i = 0, subsamples_1 = subsamples; _i < subsamples_1.length; _i++) {
+                sample = subsamples_1[_i];
+                sample.highDelta = predict(sample);
             }
+            subsamples.sort(function (a, b) { return a.highDelta < b.highDelta ? 1 : a.highDelta > b.highDelta ? -1 : 0; });
+            console.log(subsamples);
+            return [2 /*return*/];
         });
     });
 }
-exports.main = main;
+exports.rank = rank;
+function predict(sample) {
+    return (sample.beta * 0.22208479046821594) +
+        (sample.trending * 0.952788233757019) +
+        (sample.shortRatio * -0.004881864879280329) +
+        (sample.preMarketChange * -1.053897738456726) +
+        0.35771802067756653;
+}
+exports.predict = predict;
+rank().then(function () {
+    console.log('Done!');
+}).catch(function (err) {
+    console.error(err);
+});

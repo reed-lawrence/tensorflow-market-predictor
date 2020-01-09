@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs-node';
 import * as fs from 'fs';
-import { IApiResult } from './main';
+import { IApiResult } from './interfaces/api-result';
 import { mean, std, round } from 'mathjs';
 
 export function getData() {
@@ -8,71 +8,65 @@ export function getData() {
   return ds;
 }
 
+export type Subsample = {
+  symbol: string;
+  deltaHigh: number;
+  beta: number;
+  trending: number;
+  shortRatio: number;
+  preMarketChange: number;
+}
 
 export async function train() {
   console.clear();
-  const beta_vals: number[] = [];
-  const trending_vals: number[] = [];
-  const y_vals: number[] = [];
-  const shortRatio_vals: number[] = [];
-  const preMarketChange_vals: number[] = [];
-  const open_vals: number[] = [];
 
   const data = getData();
-  for (const entry of data) {
-    let open = 0;
-    let yVal = 0;
+
+  const subsamples: Subsample[] = data.map(entry => {
+    let deltaHigh = 0, beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0, symbol = entry.price.symbol;
+
     if (typeof entry.price.regularMarketDayHigh === 'number' && typeof entry.price.regularMarketOpen === 'number') {
-      yVal = entry.price.regularMarketDayHigh - entry.price.regularMarketOpen;
-      open = entry.price.regularMarketOpen;
-
-      // console.log(yVal);
-      y_vals.push(yVal);
-      open_vals.push(open);
-
-      let beta = 0;
-      if (entry.defaultKeyStatistics.beta) {
-        if (typeof entry.defaultKeyStatistics.beta === 'number') {
-          beta = entry.defaultKeyStatistics.beta;
-        } else {
-          beta = entry.defaultKeyStatistics.beta.raw || 0;
-        }
-      }
-
-      // console.log(beta);
-      beta_vals.push(beta);
-
-      let trending = 0;
-      if (typeof entry.price.regularMarketPrice === 'number' && typeof entry.price.regularMarketPreviousClose === 'number') {
-        trending = entry.price.regularMarketPrice - entry.price.regularMarketPreviousClose;
-      }
-      // console.log(trending)
-      trending_vals.push(trending);
-
-      let shortRatio = 0;
-      if (entry.defaultKeyStatistics.shortRatio && typeof entry.defaultKeyStatistics.shortRatio === 'number') {
-        shortRatio = entry.defaultKeyStatistics.shortRatio;
-      }
-      shortRatio_vals.push(shortRatio);
-
-      let preMarketChange = 0;
-      if (entry.price.preMarketChange && typeof entry.price.preMarketChange === 'number') {
-        preMarketChange = entry.price.preMarketChange;
-      }
-      preMarketChange_vals.push(preMarketChange);
+      deltaHigh = entry.price.regularMarketDayHigh - entry.price.regularMarketOpen;
     }
-  }
 
-  // Fit a quadratic function by learning the coefficients a, b, c.
-  // const xs = tf.tensor1d([0, 1, 2, 3]);
-  // const ys = tf.tensor1d([1.1, 5.9, 16.8, 33.9]);
+    if (entry.defaultKeyStatistics.beta) {
+      if (typeof entry.defaultKeyStatistics.beta === 'number') {
+        beta = entry.defaultKeyStatistics.beta;
+      } else {
+        beta = entry.defaultKeyStatistics.beta.raw || 0;
+      }
+    }
 
-  const ys = tf.tensor1d(y_vals);
-  const beta = tf.tensor1d(beta_vals);
-  const trending = tf.tensor1d(trending_vals);
-  const shortRatio = tf.tensor1d(shortRatio_vals);
-  const preMarketChange = tf.tensor1d(preMarketChange_vals);
-  const open = tf.tensor1d(open_vals);
+    if (typeof entry.price.regularMarketPrice === 'number' && typeof entry.price.regularMarketPreviousClose === 'number') {
+      trending = entry.price.regularMarketPrice - entry.price.regularMarketPreviousClose;
+    }
+
+    if (entry.defaultKeyStatistics.shortRatio && typeof entry.defaultKeyStatistics.shortRatio === 'number') {
+      shortRatio = entry.defaultKeyStatistics.shortRatio;
+    }
+
+    if (entry.price.preMarketChange && typeof entry.price.preMarketChange === 'number') {
+      preMarketChange = entry.price.preMarketChange;
+    }
+
+    return {
+      deltaHigh,
+      beta,
+      trending,
+      shortRatio,
+      preMarketChange,
+      symbol
+    }
+
+  });
+
+  // const filteredData = subsamples.filter(sample => sample.beta && sample.deltaHigh && sample.preMarketChange && sample.shortRatio && sample.trending);
+  const filteredData = subsamples;
+  const ys = tf.tensor1d(filteredData.map(o => o.deltaHigh));
+  const beta = tf.tensor1d(filteredData.map(o => o.beta));
+  const trending = tf.tensor1d(filteredData.map(o => o.trending));
+  const shortRatio = tf.tensor1d(filteredData.map(o => o.shortRatio));
+  const preMarketChange = tf.tensor1d(filteredData.map(o => o.preMarketChange));
 
 
   // beta
@@ -97,7 +91,7 @@ export async function train() {
   // const f = (x: tf.Tensor1D) => a.mul(x.square()).add(b.mul(x)).add(c);
 
   // (high - open) = (beta * a) + (trending * b) + c
-  const f = (_beta: tf.Tensor1D, _trending: tf.Tensor1D, _shortRatio: tf.Tensor1D, _preMarketChange: tf.Tensor1D, _open: tf.Tensor1D) => {
+  const f = (_beta: tf.Tensor1D, _trending: tf.Tensor1D, _shortRatio: tf.Tensor1D, _preMarketChange: tf.Tensor1D) => {
     const output = a.mul(_beta)
       .add(b.mul(_trending))
       .add(s.mul(_shortRatio))
@@ -114,17 +108,17 @@ export async function train() {
 
   // Train the model.
   for (let i = 0; i < 1000; i++) {
-    optimizer.minimize(() => loss(f(beta, trending, shortRatio, preMarketChange, open), ys));
+    optimizer.minimize(() => loss(f(beta, trending, shortRatio, preMarketChange), ys));
   }
 
   // Make predictions.
-  const preds = f(beta, trending, shortRatio, preMarketChange, open).dataSync();
+  const preds = f(beta, trending, shortRatio, preMarketChange).dataSync();
 
   const diffs: number[] = [];
   const percents: number[] = [];
   preds.forEach((pred: number, i: number) => {
     const expected = pred;
-    const actual = y_vals[i];
+    const actual = filteredData[i].deltaHigh;
     const diff = (actual - expected);
     diffs.push(diff);
 
@@ -139,7 +133,7 @@ export async function train() {
   });
   console.log();
   const avgAbsPercent = round(mean(percents), 3) as number;
-  console.log(`a: ${a.dataSync()}, b: ${b.dataSync()}, c: ${c.dataSync()}`);
+  console.log(`beta: ${a.dataSync()}, trending: ${b.dataSync()}, shortRatio: ${s.dataSync()}, preMarketChange: ${p.dataSync()}, c: ${c.dataSync()}`);
   console.log(`Avg abs difference: $${round(mean(diffs.map(d => Math.abs(d))), 2)}`)
   console.log(`Avg absolute prediction variance: ${avgAbsPercent}%`);
   console.log(`Std Deviation: ${round(std(diffs), 3)}`);

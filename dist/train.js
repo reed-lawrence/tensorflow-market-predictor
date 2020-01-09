@@ -53,68 +53,54 @@ function getData() {
 exports.getData = getData;
 function train() {
     return __awaiter(this, void 0, void 0, function () {
-        var beta_vals, trending_vals, y_vals, shortRatio_vals, preMarketChange_vals, open_vals, data, _i, data_1, entry, open_1, yVal, beta_1, trending_1, shortRatio_1, preMarketChange_1, ys, beta, trending, shortRatio, preMarketChange, open, a, b, c, s, p, o, f, loss, learningRate, optimizer, i, preds, diffs, percents, avgAbsPercent;
+        var data, subsamples, filteredData, ys, beta, trending, shortRatio, preMarketChange, a, b, c, s, p, o, f, loss, learningRate, optimizer, i, preds, diffs, percents, avgAbsPercent;
         return __generator(this, function (_a) {
             console.clear();
-            beta_vals = [];
-            trending_vals = [];
-            y_vals = [];
-            shortRatio_vals = [];
-            preMarketChange_vals = [];
-            open_vals = [];
             data = getData();
-            for (_i = 0, data_1 = data; _i < data_1.length; _i++) {
-                entry = data_1[_i];
-                open_1 = 0;
-                yVal = 0;
+            subsamples = data.map(function (entry) {
+                var deltaHigh = 0, beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0, symbol = entry.price.symbol;
                 if (typeof entry.price.regularMarketDayHigh === 'number' && typeof entry.price.regularMarketOpen === 'number') {
-                    yVal = entry.price.regularMarketDayHigh - entry.price.regularMarketOpen;
-                    open_1 = entry.price.regularMarketOpen;
-                    // console.log(yVal);
-                    y_vals.push(yVal);
-                    open_vals.push(open_1);
-                    beta_1 = 0;
-                    if (entry.defaultKeyStatistics.beta) {
-                        if (typeof entry.defaultKeyStatistics.beta === 'number') {
-                            beta_1 = entry.defaultKeyStatistics.beta;
-                        }
-                        else {
-                            beta_1 = entry.defaultKeyStatistics.beta.raw || 0;
-                        }
-                    }
-                    // console.log(beta);
-                    beta_vals.push(beta_1);
-                    trending_1 = 0;
-                    if (typeof entry.price.regularMarketPrice === 'number' && typeof entry.price.regularMarketPreviousClose === 'number') {
-                        trending_1 = entry.price.regularMarketPrice - entry.price.regularMarketPreviousClose;
-                    }
-                    // console.log(trending)
-                    trending_vals.push(trending_1);
-                    shortRatio_1 = 0;
-                    if (entry.defaultKeyStatistics.shortRatio && typeof entry.defaultKeyStatistics.shortRatio === 'number') {
-                        shortRatio_1 = entry.defaultKeyStatistics.shortRatio;
-                    }
-                    shortRatio_vals.push(shortRatio_1);
-                    preMarketChange_1 = 0;
-                    if (entry.price.preMarketChange && typeof entry.price.preMarketChange === 'number') {
-                        preMarketChange_1 = entry.price.preMarketChange;
-                    }
-                    preMarketChange_vals.push(preMarketChange_1);
+                    deltaHigh = entry.price.regularMarketDayHigh - entry.price.regularMarketOpen;
                 }
-            }
-            ys = tf.tensor1d(y_vals);
-            beta = tf.tensor1d(beta_vals);
-            trending = tf.tensor1d(trending_vals);
-            shortRatio = tf.tensor1d(shortRatio_vals);
-            preMarketChange = tf.tensor1d(preMarketChange_vals);
-            open = tf.tensor1d(open_vals);
+                if (entry.defaultKeyStatistics.beta) {
+                    if (typeof entry.defaultKeyStatistics.beta === 'number') {
+                        beta = entry.defaultKeyStatistics.beta;
+                    }
+                    else {
+                        beta = entry.defaultKeyStatistics.beta.raw || 0;
+                    }
+                }
+                if (typeof entry.price.regularMarketPrice === 'number' && typeof entry.price.regularMarketPreviousClose === 'number') {
+                    trending = entry.price.regularMarketPrice - entry.price.regularMarketPreviousClose;
+                }
+                if (entry.defaultKeyStatistics.shortRatio && typeof entry.defaultKeyStatistics.shortRatio === 'number') {
+                    shortRatio = entry.defaultKeyStatistics.shortRatio;
+                }
+                if (entry.price.preMarketChange && typeof entry.price.preMarketChange === 'number') {
+                    preMarketChange = entry.price.preMarketChange;
+                }
+                return {
+                    deltaHigh: deltaHigh,
+                    beta: beta,
+                    trending: trending,
+                    shortRatio: shortRatio,
+                    preMarketChange: preMarketChange,
+                    symbol: symbol
+                };
+            });
+            filteredData = subsamples;
+            ys = tf.tensor1d(filteredData.map(function (o) { return o.deltaHigh; }));
+            beta = tf.tensor1d(filteredData.map(function (o) { return o.beta; }));
+            trending = tf.tensor1d(filteredData.map(function (o) { return o.trending; }));
+            shortRatio = tf.tensor1d(filteredData.map(function (o) { return o.shortRatio; }));
+            preMarketChange = tf.tensor1d(filteredData.map(function (o) { return o.preMarketChange; }));
             a = tf.scalar(0).variable();
             b = tf.scalar(0).variable();
             c = tf.scalar(0).variable();
             s = tf.scalar(0).variable();
             p = tf.scalar(0).variable();
             o = tf.scalar(0).variable();
-            f = function (_beta, _trending, _shortRatio, _preMarketChange, _open) {
+            f = function (_beta, _trending, _shortRatio, _preMarketChange) {
                 var output = a.mul(_beta)
                     .add(b.mul(_trending))
                     .add(s.mul(_shortRatio))
@@ -128,14 +114,14 @@ function train() {
             optimizer = tf.train.sgd(learningRate);
             // Train the model.
             for (i = 0; i < 1000; i++) {
-                optimizer.minimize(function () { return loss(f(beta, trending, shortRatio, preMarketChange, open), ys); });
+                optimizer.minimize(function () { return loss(f(beta, trending, shortRatio, preMarketChange), ys); });
             }
-            preds = f(beta, trending, shortRatio, preMarketChange, open).dataSync();
+            preds = f(beta, trending, shortRatio, preMarketChange).dataSync();
             diffs = [];
             percents = [];
             preds.forEach(function (pred, i) {
                 var expected = pred;
-                var actual = y_vals[i];
+                var actual = filteredData[i].deltaHigh;
                 var diff = (actual - expected);
                 diffs.push(diff);
                 var percent = 0;
@@ -148,7 +134,7 @@ function train() {
             });
             console.log();
             avgAbsPercent = mathjs_1.round(mathjs_1.mean(percents), 3);
-            console.log("a: " + a.dataSync() + ", b: " + b.dataSync() + ", c: " + c.dataSync());
+            console.log("beta: " + a.dataSync() + ", trending: " + b.dataSync() + ", shortRatio: " + s.dataSync() + ", preMarketChange: " + p.dataSync() + ", c: " + c.dataSync());
             console.log("Avg abs difference: $" + mathjs_1.round(mathjs_1.mean(diffs.map(function (d) { return Math.abs(d); })), 2));
             console.log("Avg absolute prediction variance: " + avgAbsPercent + "%");
             console.log("Std Deviation: " + mathjs_1.round(mathjs_1.std(diffs), 3));
