@@ -88,7 +88,7 @@ function train() {
                     symbol: symbol
                 };
             });
-            filteredData = subsamples;
+            filteredData = subsamples.filter(function (sample) { return sample.beta && sample.deltaHigh && sample.preMarketChange && sample.shortRatio && sample.trending; });
             ys = tf.tensor1d(filteredData.map(function (o) { return o.deltaHigh; }));
             beta = tf.tensor1d(filteredData.map(function (o) { return o.beta; }));
             trending = tf.tensor1d(filteredData.map(function (o) { return o.trending; }));

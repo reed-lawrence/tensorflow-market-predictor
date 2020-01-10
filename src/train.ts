@@ -60,8 +60,8 @@ export async function train() {
 
   });
 
-  // const filteredData = subsamples.filter(sample => sample.beta && sample.deltaHigh && sample.preMarketChange && sample.shortRatio && sample.trending);
-  const filteredData = subsamples;
+  const filteredData = subsamples.filter(sample => sample.beta && sample.deltaHigh && sample.preMarketChange && sample.shortRatio && sample.trending);
+  // const filteredData = subsamples;
   const ys = tf.tensor1d(filteredData.map(o => o.deltaHigh));
   const beta = tf.tensor1d(filteredData.map(o => o.beta));
   const trending = tf.tensor1d(filteredData.map(o => o.trending));
