@@ -87,11 +87,16 @@ function rank() {
 }
 exports.rank = rank;
 function predict(sample) {
-    return (sample.beta * 0.22208479046821594) +
-        (sample.trending * 0.952788233757019) +
-        (sample.shortRatio * -0.004881864879280329) +
-        (sample.preMarketChange * -1.053897738456726) +
-        0.35771802067756653;
+    // return (sample.beta * 0.22208479046821594) +
+    //   (sample.trending * 0.952788233757019) +
+    //   (sample.shortRatio * -0.004881864879280329) +
+    //   (sample.preMarketChange * -1.053897738456726) +
+    //   0.35771802067756653;
+    return (sample.beta * 0.2776002287864685) +
+        (sample.trending * 0.7971218824386597) +
+        (sample.shortRatio * -0.010160037316381931) +
+        (sample.preMarketChange * -0.5024970769882202) +
+        0.4237731695175171;
 }
 exports.predict = predict;
 rank().then(function () {
