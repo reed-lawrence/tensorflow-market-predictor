@@ -9,7 +9,8 @@
     "build": "rm -r ./dist && tsc",
     "train": "npm run build && node ./dist/train.js",
     "get-data": "npm run build && node ./dist/get-current-data.js",
-    "predict": "npm run build && node ./dist/predict.js"
+    "predict": "npm run build && node ./dist/predict.js",
+    "migrate": "npm run build && node ./dist/migrate.js"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +18,10 @@
     "@tensorflow/tfjs-node": "^1.5.1",
     "@types/mathjs": "^6.0.2",
     "mathjs": "^6.4.0",
+    "mysql": "^2.17.1",
     "yahoo-finance": "^0.3.6"
+  },
+  "devDependencies": {
+    "@types/mysql": "^2.15.8"
   }
 }

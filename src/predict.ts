@@ -50,7 +50,7 @@ export async function rank() {
   subsamples.sort((a, b) => a.highDelta < b.highDelta ? 1 : a.highDelta > b.highDelta ? -1 : 0);
 
   console.log(subsamples);
-
+  return;
 }
 
 export function predict(sample: Subsample): number {

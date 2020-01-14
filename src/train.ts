@@ -2,9 +2,26 @@ import * as tf from '@tensorflow/tfjs-node';
 import * as fs from 'fs';
 import { IApiResult } from './interfaces/api-result';
 import { mean, std, round } from 'mathjs';
+import { createConnection } from 'mysql';
+import { queryFormat, MySqlQuery } from './mysql/mysql-query';
 
-export function getData() {
-  const ds: IApiResult[] = JSON.parse(fs.readFileSync('./storage/ds.json', { encoding: 'utf8' }));
+export async function getData() {
+  const ds: IApiResult[] = [];
+
+  const dbconn = createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '2v&kJe^jf%!&jG>WiwieFReVLEeydmqGWV.o)mvp83W7,mz]rrv!rq3!C7hL6o+h',
+    database: 'market_data',
+    queryFormat
+  });
+
+  const query = new MySqlQuery('SELECT data FROM single_day_data', dbconn);
+  const rows = await query.executeQueryAsync();
+  for (const row of rows.results) {
+    ds.push(JSON.parse(row.data));
+  }
+  console.log(`Data entries: ${ds.length}`);
   return ds;
 }
 
@@ -20,7 +37,7 @@ export type Subsample = {
 export async function train() {
   console.clear();
 
-  const data = getData();
+  const data = await getData();
 
   const subsamples: Subsample[] = data.map(entry => {
     let deltaHigh = 0, beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0, symbol = entry.price.symbol;
@@ -138,9 +155,9 @@ export async function train() {
   console.log(`Avg absolute prediction variance: ${avgAbsPercent}%`);
   console.log(`Std Deviation: ${round(std(diffs), 3)}`);
   console.log(`Significant model fit: ${100 - avgAbsPercent}%`);
-
+  return;
 }
 
-train().catch(err => {
+train().then(() => { console.log('Done!'); }).catch(err => {
   console.error(err);
 });

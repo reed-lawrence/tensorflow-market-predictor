@@ -35,40 +35,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-var utils_1 = require("./utils");
 var mysql_1 = require("mysql");
+var fs = __importStar(require("fs"));
 var mysql_query_1 = require("./mysql/mysql-query");
-var yahooFinance = require('yahoo-finance');
-function main() {
+function migrate() {
     return __awaiter(this, void 0, void 0, function () {
-        var symbols_distinct, data, _i, symbols_distinct_1, symbol, results, dbconn, _a, data_1, entry, query, result;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var jsonData, dbconn, _i, jsonData_1, entry, query, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
-                    console.clear();
-                    console.log('Creating distinct list of symbols');
-                    symbols_distinct = utils_1.Utils.distinctSymbols();
-                    data = [];
-                    _i = 0, symbols_distinct_1 = symbols_distinct;
-                    _b.label = 1;
-                case 1:
-                    if (!(_i < symbols_distinct_1.length)) return [3 /*break*/, 4];
-                    symbol = symbols_distinct_1[_i];
-                    console.log("Getting data for " + symbol + "...");
-                    return [4 /*yield*/, yahooFinance.quote({
-                            symbol: symbol,
-                            modules: ['price', 'summaryDetail', 'defaultKeyStatistics', 'earnings']
-                        })];
-                case 2:
-                    results = _b.sent();
-                    data.push(results);
-                    console.clear();
-                    _b.label = 3;
-                case 3:
-                    _i++;
-                    return [3 /*break*/, 1];
-                case 4:
+                    jsonData = JSON.parse(fs.readFileSync('./storage/ds.json', { encoding: 'utf8' }));
                     dbconn = mysql_1.createConnection({
                         host: 'localhost',
                         user: 'root',
@@ -76,12 +60,13 @@ function main() {
                         database: 'market_data',
                         queryFormat: mysql_query_1.queryFormat
                     });
-                    console.log('Writing to sql...');
-                    _a = 0, data_1 = data;
-                    _b.label = 5;
-                case 5:
-                    if (!(_a < data_1.length)) return [3 /*break*/, 8];
-                    entry = data_1[_a];
+                    console.clear();
+                    console.log('Connecion established');
+                    _i = 0, jsonData_1 = jsonData;
+                    _a.label = 1;
+                case 1:
+                    if (!(_i < jsonData_1.length)) return [3 /*break*/, 4];
+                    entry = jsonData_1[_i];
                     console.log("Inserting " + entry.price.symbol + "...");
                     query = new mysql_query_1.MySqlQuery('INSERT INTO single_day_data (data) VALUES (@data)', dbconn, {
                         parameters: {
@@ -89,16 +74,17 @@ function main() {
                         }
                     });
                     return [4 /*yield*/, query.executeNonQueryAsync()];
-                case 6:
-                    result = _b.sent();
+                case 2:
+                    result = _a.sent();
                     console.clear();
-                    _b.label = 7;
-                case 7:
-                    _a++;
-                    return [3 /*break*/, 5];
-                case 8: return [2 /*return*/];
+                    _a.label = 3;
+                case 3:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/];
             }
         });
     });
 }
-exports.main = main;
+exports.migrate = migrate;
+migrate().then(function () { console.log('Done!'); }).catch(function (err) { console.error(err); });
