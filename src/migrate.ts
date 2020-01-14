@@ -29,6 +29,7 @@ export async function migrate() {
     const result = await query.executeNonQueryAsync();
     console.clear();
   }
+  dbconn.end();
   return;
 }
 

@@ -96,7 +96,9 @@ function main() {
                 case 7:
                     _a++;
                     return [3 /*break*/, 5];
-                case 8: return [2 /*return*/];
+                case 8:
+                    dbconn.end();
+                    return [2 /*return*/];
             }
         });
     });

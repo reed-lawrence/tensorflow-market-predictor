@@ -22,6 +22,7 @@ export async function getData() {
     ds.push(JSON.parse(row.data));
   }
   console.log(`Data entries: ${ds.length}`);
+  dbconn.end();
   return ds;
 }
 
@@ -132,7 +133,6 @@ export async function train() {
   const preds = f(beta, trending, shortRatio, preMarketChange).dataSync();
 
   const diffs: number[] = [];
-  const percents: number[] = [];
   preds.forEach((pred: number, i: number) => {
     const expected = pred;
     const actual = filteredData[i].deltaHigh;
@@ -142,19 +142,15 @@ export async function train() {
     let percent = 0;
     if (actual !== 0) {
       percent = (diff / Math.abs(expected)) * 100;
-      percents.push(Math.abs(percent));
     }
     console.log(`i: ${i}, pred: ${round(expected, 3)}, actual: ${round(actual, 3)}, diff: ${round(diff, 3)}, percent: ${round(percent, 3)}%`);
     // console.log(`${round(expected, 3)},${round(actual, 3)}`);
 
   });
   console.log();
-  const avgAbsPercent = round(mean(percents), 3) as number;
   console.log(`beta: ${a.dataSync()}, trending: ${b.dataSync()}, shortRatio: ${s.dataSync()}, preMarketChange: ${p.dataSync()}, c: ${c.dataSync()}`);
-  console.log(`Avg abs difference: $${round(mean(diffs.map(d => Math.abs(d))), 2)}`)
-  console.log(`Avg absolute prediction variance: ${avgAbsPercent}%`);
+  console.log(`Avg abs difference: $${round(mean(diffs.map(d => Math.abs(d))), 2)}`);
   console.log(`Std Deviation: ${round(std(diffs), 3)}`);
-  console.log(`Significant model fit: ${100 - avgAbsPercent}%`);
   return;
 }
 

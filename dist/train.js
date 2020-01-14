@@ -70,6 +70,7 @@ function getData() {
                         ds.push(JSON.parse(row.data));
                     }
                     console.log("Data entries: " + ds.length);
+                    dbconn.end();
                     return [2 /*return*/, ds];
             }
         });
@@ -78,7 +79,7 @@ function getData() {
 exports.getData = getData;
 function train() {
     return __awaiter(this, void 0, void 0, function () {
-        var data, subsamples, filteredData, ys, beta, trending, shortRatio, preMarketChange, a, b, c, s, p, o, f, loss, learningRate, optimizer, i, preds, diffs, percents, avgAbsPercent;
+        var data, subsamples, filteredData, ys, beta, trending, shortRatio, preMarketChange, a, b, c, s, p, o, f, loss, learningRate, optimizer, i, preds, diffs;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -147,7 +148,6 @@ function train() {
                     }
                     preds = f(beta, trending, shortRatio, preMarketChange).dataSync();
                     diffs = [];
-                    percents = [];
                     preds.forEach(function (pred, i) {
                         var expected = pred;
                         var actual = filteredData[i].deltaHigh;
@@ -156,18 +156,14 @@ function train() {
                         var percent = 0;
                         if (actual !== 0) {
                             percent = (diff / Math.abs(expected)) * 100;
-                            percents.push(Math.abs(percent));
                         }
                         console.log("i: " + i + ", pred: " + mathjs_1.round(expected, 3) + ", actual: " + mathjs_1.round(actual, 3) + ", diff: " + mathjs_1.round(diff, 3) + ", percent: " + mathjs_1.round(percent, 3) + "%");
                         // console.log(`${round(expected, 3)},${round(actual, 3)}`);
                     });
                     console.log();
-                    avgAbsPercent = mathjs_1.round(mathjs_1.mean(percents), 3);
                     console.log("beta: " + a.dataSync() + ", trending: " + b.dataSync() + ", shortRatio: " + s.dataSync() + ", preMarketChange: " + p.dataSync() + ", c: " + c.dataSync());
                     console.log("Avg abs difference: $" + mathjs_1.round(mathjs_1.mean(diffs.map(function (d) { return Math.abs(d); })), 2));
-                    console.log("Avg absolute prediction variance: " + avgAbsPercent + "%");
                     console.log("Std Deviation: " + mathjs_1.round(mathjs_1.std(diffs), 3));
-                    console.log("Significant model fit: " + (100 - avgAbsPercent) + "%");
                     return [2 /*return*/];
             }
         });

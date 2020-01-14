@@ -81,7 +81,9 @@ function migrate() {
                 case 3:
                     _i++;
                     return [3 /*break*/, 1];
-                case 4: return [2 /*return*/];
+                case 4:
+                    dbconn.end();
+                    return [2 /*return*/];
             }
         });
     });

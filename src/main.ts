@@ -42,6 +42,7 @@ export async function main() {
     const result = await query.executeNonQueryAsync();
     console.clear();
   }
+  dbconn.end();
   return;
 }
 
