@@ -72,31 +72,37 @@ function rank() {
                     trending: trending,
                     shortRatio: shortRatio,
                     preMarketChange: preMarketChange,
-                    highDelta: 0
+                    highDelta: 0,
+                    deltaPercent: 0,
+                    open: typeof d.price.regularMarketOpen === 'number' ? d.price.regularMarketOpen : d.price.regularMarketOpen.raw
                 };
             });
             for (_i = 0, subsamples_1 = subsamples; _i < subsamples_1.length; _i++) {
                 sample = subsamples_1[_i];
                 sample.highDelta = predict(sample);
+                sample.deltaPercent = (sample.highDelta / sample.open) * 100;
             }
             subsamples.sort(function (a, b) { return a.highDelta < b.highDelta ? 1 : a.highDelta > b.highDelta ? -1 : 0; });
-            console.log(subsamples);
+            // console.log(subsamples);
+            console.log(subsamples.filter(function (s) { return s.open < 30; }));
             return [2 /*return*/];
         });
     });
 }
 exports.rank = rank;
 function predict(sample) {
-    // return (sample.beta * 0.22208479046821594) +
-    //   (sample.trending * 0.952788233757019) +
-    //   (sample.shortRatio * -0.004881864879280329) +
-    //   (sample.preMarketChange * -1.053897738456726) +
-    //   0.35771802067756653;
-    return (sample.beta * 0.2776002287864685) +
-        (sample.trending * 0.7971218824386597) +
-        (sample.shortRatio * -0.010160037316381931) +
-        (sample.preMarketChange * -0.5024970769882202) +
-        0.4237731695175171;
+    // Percent change model
+    // return (sample.beta * 0.43913936614990234) +
+    //   (sample.trending * 0.2725888788700104) +
+    //   (sample.shortRatio * 0.07221806049346924) +
+    //   (sample.preMarketChange * -0.22439055144786835) +
+    //   1.0478475093841553;
+    // Raw delta model
+    return (sample.beta * 0.28961578011512756) +
+        (sample.trending * 0.6951797604560852) +
+        (sample.shortRatio * -0.009811404161155224) +
+        (sample.preMarketChange * -0.45400524139404297) +
+        0.45660850405693054;
 }
 exports.predict = predict;
 rank().then(function () {

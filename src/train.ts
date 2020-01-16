@@ -1,30 +1,9 @@
 import * as tf from '@tensorflow/tfjs-node';
-import * as fs from 'fs';
-import { IApiResult } from './interfaces/api-result';
 import { mean, std, round } from 'mathjs';
-import { createConnection } from 'mysql';
-import { queryFormat, MySqlQuery } from './mysql/mysql-query';
+import { getData } from './methods/get-data';
+import { Utils } from './utils';
 
-export async function getData() {
-  const ds: IApiResult[] = [];
 
-  const dbconn = createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '2v&kJe^jf%!&jG>WiwieFReVLEeydmqGWV.o)mvp83W7,mz]rrv!rq3!C7hL6o+h',
-    database: 'market_data',
-    queryFormat
-  });
-
-  const query = new MySqlQuery('SELECT data FROM single_day_data', dbconn);
-  const rows = await query.executeQueryAsync();
-  for (const row of rows.results) {
-    ds.push(JSON.parse(row.data));
-  }
-  console.log(`Data entries: ${ds.length}`);
-  dbconn.end();
-  return ds;
-}
 
 export type Subsample = {
   symbol: string;
@@ -43,9 +22,25 @@ export async function train() {
   const subsamples: Subsample[] = data.map(entry => {
     let deltaHigh = 0, beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0, symbol = entry.price.symbol;
 
-    if (typeof entry.price.regularMarketDayHigh === 'number' && typeof entry.price.regularMarketOpen === 'number') {
+    // Delta high that predicts next day data
+    // const nextDayEntry = Utils.getFromDate(entry, 1, data);
+    // if (
+    //   nextDayEntry &&
+    //   typeof nextDayEntry.price.regularMarketDayHigh === 'number' &&
+    //   typeof entry.price.regularMarketOpen === 'number'
+    // ) {
+    //   deltaHigh = nextDayEntry.price.regularMarketDayHigh - entry.price.regularMarketOpen;
+    // }
+
+    // Delta high that predicts current day data
+    if (typeof entry.price.regularMarketOpen === 'number' && typeof entry.price.regularMarketDayHigh === 'number') {
       deltaHigh = entry.price.regularMarketDayHigh - entry.price.regularMarketOpen;
     }
+
+    // Delta high that predicts current day data based on percent change
+    // if (typeof entry.price.regularMarketOpen === 'number' && typeof entry.price.regularMarketDayHigh === 'number') {
+    //   deltaHigh = 100 - ((entry.price.regularMarketOpen / entry.price.regularMarketDayHigh) * 100);
+    // }
 
     if (entry.defaultKeyStatistics.beta) {
       if (typeof entry.defaultKeyStatistics.beta === 'number') {
@@ -79,7 +74,10 @@ export async function train() {
   });
 
   // const filteredData = subsamples.filter(sample => sample.beta && sample.deltaHigh && sample.preMarketChange && sample.shortRatio && sample.trending);
-  const filteredData = subsamples;
+  const filteredData = subsamples.filter(sample => sample.deltaHigh);
+  // const filteredData = subsamples;
+
+  console.log(`Training data length: ${filteredData.length}`);
   const ys = tf.tensor1d(filteredData.map(o => o.deltaHigh));
   const beta = tf.tensor1d(filteredData.map(o => o.beta));
   const trending = tf.tensor1d(filteredData.map(o => o.trending));
@@ -149,7 +147,7 @@ export async function train() {
   });
   console.log();
   console.log(`beta: ${a.dataSync()}, trending: ${b.dataSync()}, shortRatio: ${s.dataSync()}, preMarketChange: ${p.dataSync()}, c: ${c.dataSync()}`);
-  console.log(`Avg abs difference: $${round(mean(diffs.map(d => Math.abs(d))), 2)}`);
+  console.log(`Avg abs difference: ${round(mean(diffs.map(d => Math.abs(d))), 2)}`);
   console.log(`Std Deviation: ${round(std(diffs), 3)}`);
   return;
 }

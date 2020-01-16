@@ -45,38 +45,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var tf = __importStar(require("@tensorflow/tfjs-node"));
 var mathjs_1 = require("mathjs");
-var mysql_1 = require("mysql");
-var mysql_query_1 = require("./mysql/mysql-query");
-function getData() {
-    return __awaiter(this, void 0, void 0, function () {
-        var ds, dbconn, query, rows, _i, _a, row;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    ds = [];
-                    dbconn = mysql_1.createConnection({
-                        host: 'localhost',
-                        user: 'root',
-                        password: '2v&kJe^jf%!&jG>WiwieFReVLEeydmqGWV.o)mvp83W7,mz]rrv!rq3!C7hL6o+h',
-                        database: 'market_data',
-                        queryFormat: mysql_query_1.queryFormat
-                    });
-                    query = new mysql_query_1.MySqlQuery('SELECT data FROM single_day_data', dbconn);
-                    return [4 /*yield*/, query.executeQueryAsync()];
-                case 1:
-                    rows = _b.sent();
-                    for (_i = 0, _a = rows.results; _i < _a.length; _i++) {
-                        row = _a[_i];
-                        ds.push(JSON.parse(row.data));
-                    }
-                    console.log("Data entries: " + ds.length);
-                    dbconn.end();
-                    return [2 /*return*/, ds];
-            }
-        });
-    });
-}
-exports.getData = getData;
+var get_data_1 = require("./methods/get-data");
 function train() {
     return __awaiter(this, void 0, void 0, function () {
         var data, subsamples, filteredData, ys, beta, trending, shortRatio, preMarketChange, a, b, c, s, p, o, f, loss, learningRate, optimizer, i, preds, diffs;
@@ -84,14 +53,28 @@ function train() {
             switch (_a.label) {
                 case 0:
                     console.clear();
-                    return [4 /*yield*/, getData()];
+                    return [4 /*yield*/, get_data_1.getData()];
                 case 1:
                     data = _a.sent();
                     subsamples = data.map(function (entry) {
                         var deltaHigh = 0, beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0, symbol = entry.price.symbol;
-                        if (typeof entry.price.regularMarketDayHigh === 'number' && typeof entry.price.regularMarketOpen === 'number') {
+                        // Delta high that predicts next day data
+                        // const nextDayEntry = Utils.getFromDate(entry, 1, data);
+                        // if (
+                        //   nextDayEntry &&
+                        //   typeof nextDayEntry.price.regularMarketDayHigh === 'number' &&
+                        //   typeof entry.price.regularMarketOpen === 'number'
+                        // ) {
+                        //   deltaHigh = nextDayEntry.price.regularMarketDayHigh - entry.price.regularMarketOpen;
+                        // }
+                        // Delta high that predicts current day data
+                        if (typeof entry.price.regularMarketOpen === 'number' && typeof entry.price.regularMarketDayHigh === 'number') {
                             deltaHigh = entry.price.regularMarketDayHigh - entry.price.regularMarketOpen;
                         }
+                        // Delta high that predicts current day data based on percent change
+                        // if (typeof entry.price.regularMarketOpen === 'number' && typeof entry.price.regularMarketDayHigh === 'number') {
+                        //   deltaHigh = 100 - ((entry.price.regularMarketOpen / entry.price.regularMarketDayHigh) * 100);
+                        // }
                         if (entry.defaultKeyStatistics.beta) {
                             if (typeof entry.defaultKeyStatistics.beta === 'number') {
                                 beta = entry.defaultKeyStatistics.beta;
@@ -118,7 +101,9 @@ function train() {
                             symbol: symbol
                         };
                     });
-                    filteredData = subsamples;
+                    filteredData = subsamples.filter(function (sample) { return sample.deltaHigh; });
+                    // const filteredData = subsamples;
+                    console.log("Training data length: " + filteredData.length);
                     ys = tf.tensor1d(filteredData.map(function (o) { return o.deltaHigh; }));
                     beta = tf.tensor1d(filteredData.map(function (o) { return o.beta; }));
                     trending = tf.tensor1d(filteredData.map(function (o) { return o.trending; }));
@@ -162,7 +147,7 @@ function train() {
                     });
                     console.log();
                     console.log("beta: " + a.dataSync() + ", trending: " + b.dataSync() + ", shortRatio: " + s.dataSync() + ", preMarketChange: " + p.dataSync() + ", c: " + c.dataSync());
-                    console.log("Avg abs difference: $" + mathjs_1.round(mathjs_1.mean(diffs.map(function (d) { return Math.abs(d); })), 2));
+                    console.log("Avg abs difference: " + mathjs_1.round(mathjs_1.mean(diffs.map(function (d) { return Math.abs(d); })), 2));
                     console.log("Std Deviation: " + mathjs_1.round(mathjs_1.std(diffs), 3));
                     return [2 /*return*/];
             }
