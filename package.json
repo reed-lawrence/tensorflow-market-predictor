@@ -9,8 +9,9 @@
     "build": "rm -r ./dist && tsc",
     "train": "npm run build && node ./dist/train.js",
     "get-data": "npm run build && node ./dist/get-current-data.js",
-    "predict": "npm run build && node ./dist/predict.js",
-    "migrate": "npm run build && node ./dist/migrate.js"
+    "rank": "npm run build && node ./dist/rank.js",
+    "migrate": "npm run build && node ./dist/migrate.js",
+    "watch": "npm run build && node ./dist/watch.js"
   },
   "author": "",
   "license": "ISC",

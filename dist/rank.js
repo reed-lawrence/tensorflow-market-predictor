@@ -44,6 +44,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = __importStar(require("fs"));
+var predict_1 = require("./methods/predict");
 function rank() {
     return __awaiter(this, void 0, void 0, function () {
         var currentData, subsamples, _i, subsamples_1, sample;
@@ -79,7 +80,7 @@ function rank() {
             });
             for (_i = 0, subsamples_1 = subsamples; _i < subsamples_1.length; _i++) {
                 sample = subsamples_1[_i];
-                sample.highDelta = predict(sample);
+                sample.highDelta = predict_1.predict(sample);
                 sample.deltaPercent = (sample.highDelta / sample.open) * 100;
             }
             subsamples.sort(function (a, b) { return a.highDelta < b.highDelta ? 1 : a.highDelta > b.highDelta ? -1 : 0; });
@@ -90,27 +91,6 @@ function rank() {
     });
 }
 exports.rank = rank;
-function predict(sample) {
-    // Percent change model
-    // return (sample.beta * 0.43913936614990234) +
-    //   (sample.trending * 0.2725888788700104) +
-    //   (sample.shortRatio * 0.07221806049346924) +
-    //   (sample.preMarketChange * -0.22439055144786835) +
-    //   1.0478475093841553;
-    // Raw delta model
-    // return (sample.beta * 0.28961578011512756) +
-    //   (sample.trending * 0.6951797604560852) +
-    //   (sample.shortRatio * -0.009811404161155224) +
-    //   (sample.preMarketChange * -0.45400524139404297) +
-    //   0.45660850405693054;
-    // Model for open < 30
-    return (sample.beta * 0.009240319021046162) +
-        (sample.trending * 0.17387375235557556) +
-        (sample.shortRatio * 0.016302503645420074) +
-        (sample.preMarketChange * -0.000610200862865895) +
-        0.11301365494728088;
-}
-exports.predict = predict;
 rank().then(function () {
     console.log('Done!');
 }).catch(function (err) {
