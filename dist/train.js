@@ -57,7 +57,7 @@ function train() {
                 case 1:
                     data = _a.sent();
                     subsamples = data.map(function (entry) {
-                        var deltaHigh = 0, beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0, symbol = entry.price.symbol;
+                        var deltaHigh = 0, beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0, open = 0, symbol = entry.price.symbol;
                         // Delta high that predicts next day data
                         // const nextDayEntry = Utils.getFromDate(entry, 1, data);
                         // if (
@@ -70,6 +70,7 @@ function train() {
                         // Delta high that predicts current day data
                         if (typeof entry.price.regularMarketOpen === 'number' && typeof entry.price.regularMarketDayHigh === 'number') {
                             deltaHigh = entry.price.regularMarketDayHigh - entry.price.regularMarketOpen;
+                            open = entry.price.regularMarketOpen;
                         }
                         // Delta high that predicts current day data based on percent change
                         // if (typeof entry.price.regularMarketOpen === 'number' && typeof entry.price.regularMarketDayHigh === 'number') {
@@ -98,10 +99,11 @@ function train() {
                             trending: trending,
                             shortRatio: shortRatio,
                             preMarketChange: preMarketChange,
-                            symbol: symbol
+                            symbol: symbol,
+                            open: open
                         };
                     });
-                    filteredData = subsamples.filter(function (sample) { return sample.deltaHigh; });
+                    filteredData = subsamples.filter(function (sample) { return sample.deltaHigh && sample.open && sample.open < 30; });
                     // const filteredData = subsamples;
                     console.log("Training data length: " + filteredData.length);
                     ys = tf.tensor1d(filteredData.map(function (o) { return o.deltaHigh; }));
@@ -149,6 +151,7 @@ function train() {
                     console.log("beta: " + a.dataSync() + ", trending: " + b.dataSync() + ", shortRatio: " + s.dataSync() + ", preMarketChange: " + p.dataSync() + ", c: " + c.dataSync());
                     console.log("Avg abs difference: " + mathjs_1.round(mathjs_1.mean(diffs.map(function (d) { return Math.abs(d); })), 2));
                     console.log("Std Deviation: " + mathjs_1.round(mathjs_1.std(diffs), 3));
+                    console.log("Avg open: " + mathjs_1.mean(filteredData.map(function (d) { return d.open; })));
                     return [2 /*return*/];
             }
         });

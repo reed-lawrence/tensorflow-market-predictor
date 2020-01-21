@@ -12,6 +12,7 @@ export type Subsample = {
   trending: number;
   shortRatio: number;
   preMarketChange: number;
+  open: number;
 }
 
 export async function train() {
@@ -20,7 +21,7 @@ export async function train() {
   const data = await getData();
 
   const subsamples: Subsample[] = data.map(entry => {
-    let deltaHigh = 0, beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0, symbol = entry.price.symbol;
+    let deltaHigh = 0, beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0, open = 0, symbol = entry.price.symbol;
 
     // Delta high that predicts next day data
     // const nextDayEntry = Utils.getFromDate(entry, 1, data);
@@ -35,6 +36,7 @@ export async function train() {
     // Delta high that predicts current day data
     if (typeof entry.price.regularMarketOpen === 'number' && typeof entry.price.regularMarketDayHigh === 'number') {
       deltaHigh = entry.price.regularMarketDayHigh - entry.price.regularMarketOpen;
+      open = entry.price.regularMarketOpen;
     }
 
     // Delta high that predicts current day data based on percent change
@@ -68,13 +70,14 @@ export async function train() {
       trending,
       shortRatio,
       preMarketChange,
-      symbol
+      symbol,
+      open
     }
 
   });
 
   // const filteredData = subsamples.filter(sample => sample.beta && sample.deltaHigh && sample.preMarketChange && sample.shortRatio && sample.trending);
-  const filteredData = subsamples.filter(sample => sample.deltaHigh);
+  const filteredData = subsamples.filter(sample => sample.deltaHigh && sample.open && sample.open < 30);
   // const filteredData = subsamples;
 
   console.log(`Training data length: ${filteredData.length}`);
@@ -149,6 +152,7 @@ export async function train() {
   console.log(`beta: ${a.dataSync()}, trending: ${b.dataSync()}, shortRatio: ${s.dataSync()}, preMarketChange: ${p.dataSync()}, c: ${c.dataSync()}`);
   console.log(`Avg abs difference: ${round(mean(diffs.map(d => Math.abs(d))), 2)}`);
   console.log(`Std Deviation: ${round(std(diffs), 3)}`);
+  console.log(`Avg open: ${mean(filteredData.map(d => d.open))}`);
   return;
 }
 
