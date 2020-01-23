@@ -3,6 +3,7 @@ import { Utils } from './utils';
 import { IApiResult } from './interfaces/api-result';
 import { createConnection } from 'mysql';
 import { queryFormat, MySqlQuery } from './mysql/mysql-query';
+import { IChart } from './interfaces/chart';
 
 const yahooFinance = require('yahoo-finance');
 export async function main() {
@@ -13,6 +14,7 @@ export async function main() {
 
 
   const data: IApiResult[] = [];
+  const chartData: IChart[] = [];
   for (const symbol of symbols_distinct) {
     console.log(`Getting data for ${symbol}...`);
     const results: IApiResult = await yahooFinance.quote({
@@ -20,6 +22,9 @@ export async function main() {
       modules: ['price', 'summaryDetail', 'defaultKeyStatistics', 'earnings']
     });
     data.push(results);
+
+    const chart: IChart = await yahooFinance.chart(symbol);
+    chartData.push(chart);
     console.clear();
   }
 
@@ -33,7 +38,20 @@ export async function main() {
   console.log('Writing to sql...');
   for (const entry of data) {
     console.log(`Inserting ${entry.price.symbol}...`);
-    const query = new MySqlQuery('INSERT INTO single_day_data (data) VALUES (@data)', dbconn, {
+    let query = new MySqlQuery('INSERT INTO single_day_data (data) VALUES (@data)', dbconn, {
+      parameters: {
+        data: JSON.stringify(entry)
+      }
+    });
+
+    let result = await query.executeNonQueryAsync();
+
+    console.clear();
+  }
+
+  for (const entry of chartData) {
+    console.log(`Inserting chart data for ${entry.result[0].meta.symbol}...`);
+    const query = new MySqlQuery('INSERT INTO charts (data) VALUES (@data)', dbconn, {
       parameters: {
         data: JSON.stringify(entry)
       }
@@ -42,6 +60,7 @@ export async function main() {
     const result = await query.executeNonQueryAsync();
     console.clear();
   }
+
   dbconn.end();
   return;
 }

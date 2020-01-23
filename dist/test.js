@@ -36,21 +36,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var get_data_1 = require("./methods/get-data");
-var utils_1 = require("./utils");
+var yahooFinance = require('yahoo-finance');
 function test() {
-    var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var ds, yesterdaysEntry;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0: return [4 /*yield*/, get_data_1.getData()];
-                case 1:
-                    ds = _b.sent();
-                    yesterdaysEntry = utils_1.Utils.getFromDate(ds[250], 1, ds);
-                    console.log((_a = yesterdaysEntry) === null || _a === void 0 ? void 0 : _a.price.regularMarketTime);
-                    return [2 /*return*/];
-            }
+        return __generator(this, function (_a) {
+            yahooFinance.chart('BBBY').then(function (res) {
+                console.log(new Date((res.result[0].timestamp[0] + res.result[0].meta.gmtoffset) * 1000));
+                console.log(res.result[0].indicators.quote[0].open.length);
+            });
+            return [2 /*return*/];
         });
     });
 }

@@ -11,7 +11,8 @@
     "get-data": "npm run build && node ./dist/get-current-data.js",
     "rank": "npm run build && node ./dist/rank.js",
     "migrate": "npm run build && node ./dist/migrate.js",
-    "watch": "npm run build && node ./dist/watch.js"
+    "watch": "npm run build && node ./dist/watch.js",
+    "backup": "/Applications/MySQLWorkbench.app/Contents/MacOS/mysqldump market_data --user='root' --password='2v&kJe^jf%!&jG>WiwieFReVLEeydmqGWV.o)mvp83W7,mz]rrv!rq3!C7hL6o+h' > ./storage/db_restore.sql"
   },
   "author": "",
   "license": "ISC",
@@ -20,9 +21,11 @@
     "@types/mathjs": "^6.0.2",
     "mathjs": "^6.4.0",
     "mysql": "^2.17.1",
+    "request": "^2.88.0",
     "yahoo-finance": "^0.3.6"
   },
   "devDependencies": {
-    "@types/mysql": "^2.15.8"
+    "@types/mysql": "^2.15.8",
+    "@types/request": "^2.48.4"
   }
 }
