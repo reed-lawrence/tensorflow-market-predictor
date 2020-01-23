@@ -14,10 +14,10 @@ function predict(sample) {
     //   (sample.preMarketChange * -0.45400524139404297) +
     //   0.45660850405693054;
     // Model for open < 30
-    return (sample.beta * 0.008290164172649384) +
-        (sample.trending * 0.17112819850444794) +
-        (sample.shortRatio * 0.017354385927319527) +
-        (sample.preMarketChange * 0.0010310141369700432) +
-        0.1135389432311058;
+    return (sample.beta * 0.00794436875730753) +
+        (sample.trending * 0.16093717515468597) +
+        (sample.shortRatio * 0.01751340925693512) +
+        (sample.preMarketChange * 0.002429620362818241) +
+        0.11218932271003723;
 }
 exports.predict = predict;
