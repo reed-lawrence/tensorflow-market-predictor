@@ -42,7 +42,7 @@ var mysql_query_1 = require("./mysql/mysql-query");
 var yahooFinance = require('yahoo-finance');
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var symbols_distinct, data, chartData, _i, symbols_distinct_1, symbol, results, chart, dbconn, _a, data_1, entry, query, result, _b, chartData_1, entry, query, result;
+        var symbols_distinct, data, chartData, _i, symbols_distinct_1, symbol, results, dbconn, _a, data_1, entry, query, result, _b, chartData_1, entry, query, result;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -54,7 +54,7 @@ function main() {
                     _i = 0, symbols_distinct_1 = symbols_distinct;
                     _c.label = 1;
                 case 1:
-                    if (!(_i < symbols_distinct_1.length)) return [3 /*break*/, 5];
+                    if (!(_i < symbols_distinct_1.length)) return [3 /*break*/, 4];
                     symbol = symbols_distinct_1[_i];
                     console.log("Getting data for " + symbol + "...");
                     return [4 /*yield*/, yahooFinance.quote({
@@ -64,16 +64,14 @@ function main() {
                 case 2:
                     results = _c.sent();
                     data.push(results);
-                    return [4 /*yield*/, yahooFinance.chart(symbol)];
-                case 3:
-                    chart = _c.sent();
-                    chartData.push(chart);
+                    // const chart: IChart = await yahooFinance.chart(symbol);
+                    // chartData.push(chart);
                     console.clear();
-                    _c.label = 4;
-                case 4:
+                    _c.label = 3;
+                case 3:
                     _i++;
                     return [3 /*break*/, 1];
-                case 5:
+                case 4:
                     dbconn = mysql_1.createConnection({
                         host: 'localhost',
                         user: 'root',
@@ -83,9 +81,9 @@ function main() {
                     });
                     console.log('Writing to sql...');
                     _a = 0, data_1 = data;
-                    _c.label = 6;
-                case 6:
-                    if (!(_a < data_1.length)) return [3 /*break*/, 9];
+                    _c.label = 5;
+                case 5:
+                    if (!(_a < data_1.length)) return [3 /*break*/, 8];
                     entry = data_1[_a];
                     console.log("Inserting " + entry.price.symbol + "...");
                     query = new mysql_query_1.MySqlQuery('INSERT INTO single_day_data (data) VALUES (@data)', dbconn, {
@@ -94,18 +92,18 @@ function main() {
                         }
                     });
                     return [4 /*yield*/, query.executeNonQueryAsync()];
-                case 7:
+                case 6:
                     result = _c.sent();
                     console.clear();
-                    _c.label = 8;
-                case 8:
+                    _c.label = 7;
+                case 7:
                     _a++;
-                    return [3 /*break*/, 6];
-                case 9:
+                    return [3 /*break*/, 5];
+                case 8:
                     _b = 0, chartData_1 = chartData;
-                    _c.label = 10;
-                case 10:
-                    if (!(_b < chartData_1.length)) return [3 /*break*/, 13];
+                    _c.label = 9;
+                case 9:
+                    if (!(_b < chartData_1.length)) return [3 /*break*/, 12];
                     entry = chartData_1[_b];
                     console.log("Inserting chart data for " + entry.result[0].meta.symbol + "...");
                     query = new mysql_query_1.MySqlQuery('INSERT INTO charts (data) VALUES (@data)', dbconn, {
@@ -114,14 +112,14 @@ function main() {
                         }
                     });
                     return [4 /*yield*/, query.executeNonQueryAsync()];
-                case 11:
+                case 10:
                     result = _c.sent();
                     console.clear();
-                    _c.label = 12;
-                case 12:
+                    _c.label = 11;
+                case 11:
                     _b++;
-                    return [3 /*break*/, 10];
-                case 13:
+                    return [3 /*break*/, 9];
+                case 12:
                     dbconn.end();
                     return [2 /*return*/];
             }

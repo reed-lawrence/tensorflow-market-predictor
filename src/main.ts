@@ -23,8 +23,8 @@ export async function main() {
     });
     data.push(results);
 
-    const chart: IChart = await yahooFinance.chart(symbol);
-    chartData.push(chart);
+    // const chart: IChart = await yahooFinance.chart(symbol);
+    // chartData.push(chart);
     console.clear();
   }
 
