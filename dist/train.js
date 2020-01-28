@@ -76,7 +76,7 @@ function train() {
                         // if (typeof entry.price.regularMarketOpen === 'number' && typeof entry.price.regularMarketDayHigh === 'number') {
                         //   deltaHigh = 100 - ((entry.price.regularMarketOpen / entry.price.regularMarketDayHigh) * 100);
                         // }
-                        if (entry.defaultKeyStatistics.beta) {
+                        if (entry.defaultKeyStatistics && entry.defaultKeyStatistics.beta) {
                             if (typeof entry.defaultKeyStatistics.beta === 'number') {
                                 beta = entry.defaultKeyStatistics.beta;
                             }
@@ -87,7 +87,7 @@ function train() {
                         if (typeof entry.price.regularMarketPrice === 'number' && typeof entry.price.regularMarketPreviousClose === 'number') {
                             trending = entry.price.regularMarketPrice - entry.price.regularMarketPreviousClose;
                         }
-                        if (entry.defaultKeyStatistics.shortRatio && typeof entry.defaultKeyStatistics.shortRatio === 'number') {
+                        if (entry.defaultKeyStatistics && entry.defaultKeyStatistics.shortRatio && typeof entry.defaultKeyStatistics.shortRatio === 'number') {
                             shortRatio = entry.defaultKeyStatistics.shortRatio;
                         }
                         if (entry.price.preMarketChange && typeof entry.price.preMarketChange === 'number') {
@@ -103,7 +103,7 @@ function train() {
                             open: open
                         };
                     });
-                    filteredData = subsamples.filter(function (sample) { return sample.deltaHigh && sample.open && sample.open < 30; });
+                    filteredData = subsamples.filter(function (sample) { return sample.deltaHigh && sample.open && sample.open < 30 && sample.shortRatio && sample.beta; });
                     // const filteredData = subsamples;
                     console.log("Training data length: " + filteredData.length);
                     ys = tf.tensor1d(filteredData.map(function (o) { return o.deltaHigh; }));

@@ -56,7 +56,7 @@ export async function rank() {
   subsamples.sort((a, b) => a.highDelta < b.highDelta ? 1 : a.highDelta > b.highDelta ? -1 : 0);
   // console.log(subsamples);
 
-  console.log(subsamples.filter(s => s.open < 30));
+  console.log(subsamples.filter(s => s.open < 30 && s.beta && s.shortRatio));
   return;
 }
 

@@ -44,7 +44,7 @@ export async function train() {
     //   deltaHigh = 100 - ((entry.price.regularMarketOpen / entry.price.regularMarketDayHigh) * 100);
     // }
 
-    if (entry.defaultKeyStatistics.beta) {
+    if (entry.defaultKeyStatistics && entry.defaultKeyStatistics.beta) {
       if (typeof entry.defaultKeyStatistics.beta === 'number') {
         beta = entry.defaultKeyStatistics.beta;
       } else {
@@ -56,7 +56,7 @@ export async function train() {
       trending = entry.price.regularMarketPrice - entry.price.regularMarketPreviousClose;
     }
 
-    if (entry.defaultKeyStatistics.shortRatio && typeof entry.defaultKeyStatistics.shortRatio === 'number') {
+    if (entry.defaultKeyStatistics && entry.defaultKeyStatistics.shortRatio && typeof entry.defaultKeyStatistics.shortRatio === 'number') {
       shortRatio = entry.defaultKeyStatistics.shortRatio;
     }
 
@@ -77,7 +77,7 @@ export async function train() {
   });
 
   // const filteredData = subsamples.filter(sample => sample.beta && sample.deltaHigh && sample.preMarketChange && sample.shortRatio && sample.trending);
-  const filteredData = subsamples.filter(sample => sample.deltaHigh && sample.open && sample.open < 30);
+  const filteredData = subsamples.filter(sample => sample.deltaHigh && sample.open && sample.open < 30 && sample.shortRatio && sample.beta);
   // const filteredData = subsamples;
 
   console.log(`Training data length: ${filteredData.length}`);

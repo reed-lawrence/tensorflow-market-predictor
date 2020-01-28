@@ -85,7 +85,7 @@ function rank() {
             }
             subsamples.sort(function (a, b) { return a.highDelta < b.highDelta ? 1 : a.highDelta > b.highDelta ? -1 : 0; });
             // console.log(subsamples);
-            console.log(subsamples.filter(function (s) { return s.open < 30; }));
+            console.log(subsamples.filter(function (s) { return s.open < 30 && s.beta && s.shortRatio; }));
             return [2 /*return*/];
         });
     });
