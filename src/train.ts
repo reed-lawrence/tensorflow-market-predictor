@@ -22,6 +22,7 @@ export async function train() {
 
   const subsamples: Subsample[] = data.map(entry => {
     let deltaHigh = 0, beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0, open = 0, symbol = entry.price.symbol;
+    const prevDayData = Utils.getFromDate(entry, -1, data);
 
     // Delta high that predicts next day data
     // const nextDayEntry = Utils.getFromDate(entry, 1, data);
@@ -52,8 +53,17 @@ export async function train() {
       }
     }
 
-    if (typeof entry.price.regularMarketPrice === 'number' && typeof entry.price.regularMarketPreviousClose === 'number') {
-      trending = entry.price.regularMarketPrice - entry.price.regularMarketPreviousClose;
+    // This trending val works for training, but does not work for prediction
+    // if (typeof entry.price.regularMarketPrice === 'number' && typeof entry.price.regularMarketPreviousClose === 'number') {
+    //   trending = entry.price.regularMarketPrice - entry.price.regularMarketPreviousClose;
+    // }
+
+
+    // Trending relies on previous day data
+    if (prevDayData && prevDayData.price.regularMarketPreviousClose && entry.price.regularMarketPreviousClose) {
+      if (typeof prevDayData.price.regularMarketPreviousClose === 'number' && typeof entry.price.regularMarketPreviousClose === 'number') {
+        trending = entry.price.regularMarketPreviousClose - prevDayData.price.regularMarketPreviousClose;
+      }
     }
 
     if (entry.defaultKeyStatistics && entry.defaultKeyStatistics.shortRatio && typeof entry.defaultKeyStatistics.shortRatio === 'number') {
@@ -77,7 +87,7 @@ export async function train() {
   });
 
   // const filteredData = subsamples.filter(sample => sample.beta && sample.deltaHigh && sample.preMarketChange && sample.shortRatio && sample.trending);
-  const filteredData = subsamples.filter(sample => sample.deltaHigh && sample.open && sample.open < 30 && sample.shortRatio && sample.beta);
+  const filteredData = subsamples.filter(sample => sample.deltaHigh && sample.open && sample.open < 30 && sample.shortRatio && sample.beta && sample.trending);
   // const filteredData = subsamples;
 
   console.log(`Training data length: ${filteredData.length}`);

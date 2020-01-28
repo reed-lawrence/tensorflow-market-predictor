@@ -46,6 +46,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var tf = __importStar(require("@tensorflow/tfjs-node"));
 var mathjs_1 = require("mathjs");
 var get_data_1 = require("./methods/get-data");
+var utils_1 = require("./utils");
 function train() {
     return __awaiter(this, void 0, void 0, function () {
         var data, subsamples, filteredData, ys, beta, trending, shortRatio, preMarketChange, a, b, c, s, p, o, f, loss, learningRate, optimizer, i, preds, diffs;
@@ -58,6 +59,7 @@ function train() {
                     data = _a.sent();
                     subsamples = data.map(function (entry) {
                         var deltaHigh = 0, beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0, open = 0, symbol = entry.price.symbol;
+                        var prevDayData = utils_1.Utils.getFromDate(entry, -1, data);
                         // Delta high that predicts next day data
                         // const nextDayEntry = Utils.getFromDate(entry, 1, data);
                         // if (
@@ -84,8 +86,15 @@ function train() {
                                 beta = entry.defaultKeyStatistics.beta.raw || 0;
                             }
                         }
-                        if (typeof entry.price.regularMarketPrice === 'number' && typeof entry.price.regularMarketPreviousClose === 'number') {
-                            trending = entry.price.regularMarketPrice - entry.price.regularMarketPreviousClose;
+                        // This trending val works for training, but does not work for prediction
+                        // if (typeof entry.price.regularMarketPrice === 'number' && typeof entry.price.regularMarketPreviousClose === 'number') {
+                        //   trending = entry.price.regularMarketPrice - entry.price.regularMarketPreviousClose;
+                        // }
+                        // Trending relies on previous day data
+                        if (prevDayData && prevDayData.price.regularMarketPreviousClose && entry.price.regularMarketPreviousClose) {
+                            if (typeof prevDayData.price.regularMarketPreviousClose === 'number' && typeof entry.price.regularMarketPreviousClose === 'number') {
+                                trending = entry.price.regularMarketPreviousClose - prevDayData.price.regularMarketPreviousClose;
+                            }
                         }
                         if (entry.defaultKeyStatistics && entry.defaultKeyStatistics.shortRatio && typeof entry.defaultKeyStatistics.shortRatio === 'number') {
                             shortRatio = entry.defaultKeyStatistics.shortRatio;
@@ -103,7 +112,7 @@ function train() {
                             open: open
                         };
                     });
-                    filteredData = subsamples.filter(function (sample) { return sample.deltaHigh && sample.open && sample.open < 30 && sample.shortRatio && sample.beta; });
+                    filteredData = subsamples.filter(function (sample) { return sample.deltaHigh && sample.open && sample.open < 30 && sample.shortRatio && sample.beta && sample.trending; });
                     // const filteredData = subsamples;
                     console.log("Training data length: " + filteredData.length);
                     ys = tf.tensor1d(filteredData.map(function (o) { return o.deltaHigh; }));

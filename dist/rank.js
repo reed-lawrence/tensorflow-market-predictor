@@ -43,50 +43,63 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var utils_1 = require("./utils");
 var fs = __importStar(require("fs"));
 var predict_1 = require("./methods/predict");
+var get_data_1 = require("./methods/get-data");
 function rank() {
     return __awaiter(this, void 0, void 0, function () {
-        var currentData, subsamples, _i, subsamples_1, sample;
+        var historicalData, currentData, subsamples, _i, subsamples_1, sample, results, i;
         return __generator(this, function (_a) {
-            currentData = JSON.parse(fs.readFileSync('./storage/current-data.json', { encoding: 'utf8' }));
-            subsamples = currentData.map(function (d) {
-                var beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0;
-                if (typeof d.defaultKeyStatistics.beta === 'number') {
-                    beta = d.defaultKeyStatistics.beta;
-                }
-                else if (d.defaultKeyStatistics.beta && d.defaultKeyStatistics.beta.raw) {
-                    beta = d.defaultKeyStatistics.beta.raw;
-                }
-                if (typeof d.price.regularMarketPrice === 'number' && typeof d.price.regularMarketPreviousClose === 'number') {
-                    trending = d.price.regularMarketPrice - d.price.regularMarketPreviousClose;
-                }
-                if (d.defaultKeyStatistics.shortRatio && typeof d.defaultKeyStatistics.shortRatio === 'number') {
-                    shortRatio = d.defaultKeyStatistics.shortRatio;
-                }
-                if (d.price.preMarketChange && typeof d.price.preMarketChange === 'number') {
-                    preMarketChange = d.price.preMarketChange;
-                }
-                return {
-                    symbol: d.price.symbol,
-                    beta: beta,
-                    trending: trending,
-                    shortRatio: shortRatio,
-                    preMarketChange: preMarketChange,
-                    highDelta: 0,
-                    deltaPercent: 0,
-                    open: typeof d.price.regularMarketOpen === 'number' ? d.price.regularMarketOpen : d.price.regularMarketOpen.raw
-                };
-            });
-            for (_i = 0, subsamples_1 = subsamples; _i < subsamples_1.length; _i++) {
-                sample = subsamples_1[_i];
-                sample.highDelta = predict_1.predict(sample);
-                sample.deltaPercent = (sample.highDelta / sample.open) * 100;
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, get_data_1.getData()];
+                case 1:
+                    historicalData = _a.sent();
+                    currentData = JSON.parse(fs.readFileSync('./storage/current-data.json', { encoding: 'utf8' }));
+                    subsamples = currentData.map(function (d) {
+                        var beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0;
+                        var prevDayData = utils_1.Utils.getFromDate(d, -1, historicalData);
+                        if (typeof d.defaultKeyStatistics.beta === 'number') {
+                            beta = d.defaultKeyStatistics.beta;
+                        }
+                        else if (d.defaultKeyStatistics.beta && d.defaultKeyStatistics.beta.raw) {
+                            beta = d.defaultKeyStatistics.beta.raw;
+                        }
+                        // Trending relies on previous day data
+                        if (prevDayData && prevDayData.price.regularMarketPreviousClose && d.price.regularMarketPreviousClose) {
+                            if (typeof prevDayData.price.regularMarketPreviousClose === 'number' && typeof d.price.regularMarketPreviousClose === 'number') {
+                                trending = d.price.regularMarketPreviousClose - prevDayData.price.regularMarketPreviousClose;
+                            }
+                        }
+                        if (d.defaultKeyStatistics.shortRatio && typeof d.defaultKeyStatistics.shortRatio === 'number') {
+                            shortRatio = d.defaultKeyStatistics.shortRatio;
+                        }
+                        if (d.price.preMarketChange && typeof d.price.preMarketChange === 'number') {
+                            preMarketChange = d.price.preMarketChange;
+                        }
+                        return {
+                            symbol: d.price.symbol,
+                            beta: beta,
+                            trending: trending,
+                            shortRatio: shortRatio,
+                            preMarketChange: preMarketChange,
+                            highDelta: 0,
+                            deltaPercent: 0,
+                            open: typeof d.price.regularMarketOpen === 'number' ? d.price.regularMarketOpen : d.price.regularMarketOpen.raw
+                        };
+                    });
+                    for (_i = 0, subsamples_1 = subsamples; _i < subsamples_1.length; _i++) {
+                        sample = subsamples_1[_i];
+                        sample.highDelta = predict_1.predict(sample);
+                        sample.deltaPercent = (sample.highDelta / sample.open) * 100;
+                    }
+                    subsamples.sort(function (a, b) { return a.highDelta < b.highDelta ? 1 : a.highDelta > b.highDelta ? -1 : 0; });
+                    results = subsamples.filter(function (s) { return s.open < 30 && s.beta && s.shortRatio && s.trending; });
+                    for (i = 0; i < 10; i++) {
+                        console.log(results[i]);
+                    }
+                    return [2 /*return*/];
             }
-            subsamples.sort(function (a, b) { return a.highDelta < b.highDelta ? 1 : a.highDelta > b.highDelta ? -1 : 0; });
-            // console.log(subsamples);
-            console.log(subsamples.filter(function (s) { return s.open < 30 && s.beta && s.shortRatio; }));
-            return [2 /*return*/];
         });
     });
 }

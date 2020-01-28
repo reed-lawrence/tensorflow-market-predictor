@@ -36,14 +36,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var utils_1 = require("./utils");
 var yahooFinance = require('yahoo-finance');
 function test() {
     return __awaiter(this, void 0, void 0, function () {
+        var testDate;
         return __generator(this, function (_a) {
-            yahooFinance.chart('BBBY').then(function (res) {
-                console.log(new Date((res.result[0].timestamp[0] + res.result[0].meta.gmtoffset) * 1000));
-                console.log(res.result[0].indicators.quote[0].open.length);
-            });
+            testDate = new Date();
+            utils_1.Utils.getFromDateStr(testDate, 4);
             return [2 /*return*/];
         });
     });

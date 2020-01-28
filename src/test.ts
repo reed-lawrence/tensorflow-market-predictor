@@ -1,12 +1,11 @@
 import { IChart } from './interfaces/chart';
+import { Utils } from './utils';
 var yahooFinance = require('yahoo-finance');
 
 
 export async function test() {
-  yahooFinance.chart('BBBY').then((res: IChart) => {
-    console.log(new Date((res.result[0].timestamp[0] + res.result[0].meta.gmtoffset) * 1000 ));
-    console.log(res.result[0].indicators.quote[0].open.length);
-  });
+  const testDate = new Date();
+  Utils.getFromDateStr(testDate, 4);
 }
 
 test().then(() => {
