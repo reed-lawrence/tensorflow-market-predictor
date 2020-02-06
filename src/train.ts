@@ -154,7 +154,7 @@ export async function train() {
     if (actual !== 0) {
       percent = (diff / Math.abs(expected)) * 100;
     }
-    console.log(`i: ${i}, pred: ${round(expected, 3)}, actual: ${round(actual, 3)}, diff: ${round(diff, 3)}, percent: ${round(percent, 3)}%`);
+    console.log(`i: ${i}, pred: ${round(expected, 3)}, actual: ${round(actual, 3)}, diff: ${round(diff, 3)}`);
     // console.log(`${round(expected, 3)},${round(actual, 3)}`);
 
   });

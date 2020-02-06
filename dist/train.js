@@ -153,7 +153,7 @@ function train() {
                         if (actual !== 0) {
                             percent = (diff / Math.abs(expected)) * 100;
                         }
-                        console.log("i: " + i + ", pred: " + mathjs_1.round(expected, 3) + ", actual: " + mathjs_1.round(actual, 3) + ", diff: " + mathjs_1.round(diff, 3) + ", percent: " + mathjs_1.round(percent, 3) + "%");
+                        console.log("i: " + i + ", pred: " + mathjs_1.round(expected, 3) + ", actual: " + mathjs_1.round(actual, 3) + ", diff: " + mathjs_1.round(diff, 3));
                         // console.log(`${round(expected, 3)},${round(actual, 3)}`);
                     });
                     console.log();
