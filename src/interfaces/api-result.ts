@@ -6,4 +6,4 @@ import { IEarnings } from "./earnings";
 
 import { IPrice } from "./price";
 
-export type IApiResult = { summaryDetail: ISummaryDetail, defaultKeyStatistics: IDefaultKeyStatistics, earnings: IEarnings, price: IPrice };
+export type IApiResult = { id: number; summaryDetail: ISummaryDetail, defaultKeyStatistics: IDefaultKeyStatistics, earnings: IEarnings, price: IPrice };

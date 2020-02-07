@@ -25,6 +25,21 @@ var Utils = /** @class */ (function () {
         }
         return output;
     };
+    Utils.distinct = function (arr, predicate) {
+        var output = [];
+        var _loop_2 = function (obj) {
+            var result = predicate(obj);
+            if (output.findIndex(function (o) { return o === result; }) === -1) {
+                output.push(result);
+            }
+        };
+        for (var _i = 0, arr_1 = arr; _i < arr_1.length; _i++) {
+            var obj = arr_1[_i];
+            _loop_2(obj);
+        }
+        return output;
+    };
+    ;
     Utils.getFromDate = function (target, n, collection) {
         if (n === 0) {
             throw new Error('n should not be 0 in getFromDate');

@@ -21,6 +21,7 @@ export async function rank() {
   const subsamples: Subsample[] = currentData.map(d => {
     let beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0;
     const prevDayData = Utils.getFromDate(d, -1, historicalData);
+    console.log(prevDayData ? true : false);
 
 
     if (typeof d.defaultKeyStatistics.beta === 'number') {

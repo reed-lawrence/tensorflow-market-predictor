@@ -13,10 +13,12 @@ export async function getData() {
     queryFormat
   });
 
-  const query = new MySqlQuery('SELECT data FROM single_day_data', dbconn);
+  const query = new MySqlQuery('SELECT id, data FROM single_day_data', dbconn);
   const rows = await query.executeQueryAsync();
   for (const row of rows.results) {
-    ds.push(JSON.parse(row.data));
+    const obj = JSON.parse(row.data);
+    obj.id = row.id;
+    ds.push(obj);
   }
   console.log(`Data entries: ${ds.length}`);
   dbconn.end();

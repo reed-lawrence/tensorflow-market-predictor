@@ -40,7 +40,7 @@ var mysql_1 = require("mysql");
 var mysql_query_1 = require("../mysql/mysql-query");
 function getData() {
     return __awaiter(this, void 0, void 0, function () {
-        var ds, dbconn, query, rows, _i, _a, row;
+        var ds, dbconn, query, rows, _i, _a, row, obj;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -52,13 +52,15 @@ function getData() {
                         database: 'market_data',
                         queryFormat: mysql_query_1.queryFormat
                     });
-                    query = new mysql_query_1.MySqlQuery('SELECT data FROM single_day_data', dbconn);
+                    query = new mysql_query_1.MySqlQuery('SELECT id, data FROM single_day_data', dbconn);
                     return [4 /*yield*/, query.executeQueryAsync()];
                 case 1:
                     rows = _b.sent();
                     for (_i = 0, _a = rows.results; _i < _a.length; _i++) {
                         row = _a[_i];
-                        ds.push(JSON.parse(row.data));
+                        obj = JSON.parse(row.data);
+                        obj.id = row.id;
+                        ds.push(obj);
                     }
                     console.log("Data entries: " + ds.length);
                     dbconn.end();

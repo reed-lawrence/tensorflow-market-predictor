@@ -4,6 +4,7 @@ import { IApiResult } from './interfaces/api-result';
 import { createConnection } from 'mysql';
 import { queryFormat, MySqlQuery } from './mysql/mysql-query';
 import { IChart } from './interfaces/chart';
+import { getData } from './methods/get-data';
 
 const yahooFinance = require('yahoo-finance');
 export async function main() {
@@ -62,6 +63,12 @@ export async function main() {
   }
 
   dbconn.end();
+
+  // Validate that it actually saved
+  const dbData = await getData();
+  const today = new Date().toISOString().substr(0, 10);
+  console.log(dbData.filter(entry => new Date(entry.price.regularMarketTime).toISOString().substr(0, 10)).length > 0);
+
   return;
 }
 

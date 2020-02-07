@@ -36,14 +36,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var utils_1 = require("./utils");
 var yahooFinance = require('yahoo-finance');
 function test() {
     return __awaiter(this, void 0, void 0, function () {
-        var testDate;
         return __generator(this, function (_a) {
-            testDate = new Date();
-            utils_1.Utils.getFromDateStr(testDate, 4);
             return [2 /*return*/];
         });
     });

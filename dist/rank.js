@@ -59,6 +59,7 @@ function rank() {
                     subsamples = currentData.map(function (d) {
                         var beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0;
                         var prevDayData = utils_1.Utils.getFromDate(d, -1, historicalData);
+                        console.log(prevDayData ? true : false);
                         if (typeof d.defaultKeyStatistics.beta === 'number') {
                             beta = d.defaultKeyStatistics.beta;
                         }

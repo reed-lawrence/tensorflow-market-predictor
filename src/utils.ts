@@ -20,6 +20,17 @@ export class Utils {
     return output;
   }
 
+  public static distinct<T, U>(arr: T[], predicate: (o: T) => U): U[] {
+    const output: U[] = [];
+    for (const obj of arr) {
+      const result = predicate(obj);
+      if (output.findIndex(o => o === result) === -1) {
+        output.push(result);
+      }
+    }
+    return output;
+  };
+
   public static getFromDate(target: IApiResult, n: number, collection: IApiResult[]) {
     if (n === 0) {
       throw new Error('n should not be 0 in getFromDate');
