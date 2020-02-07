@@ -39,10 +39,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("./utils");
 var mysql_1 = require("mysql");
 var mysql_query_1 = require("./mysql/mysql-query");
+var get_data_1 = require("./methods/get-data");
 var yahooFinance = require('yahoo-finance');
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var symbols_distinct, data, chartData, _i, symbols_distinct_1, symbol, results, dbconn, _a, data_1, entry, query, result, _b, chartData_1, entry, query, result;
+        var symbols_distinct, data, chartData, _i, symbols_distinct_1, symbol, results, dbconn, _a, data_1, entry, query, result, _b, chartData_1, entry, query, result, dbData, today;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -121,6 +122,11 @@ function main() {
                     return [3 /*break*/, 9];
                 case 12:
                     dbconn.end();
+                    return [4 /*yield*/, get_data_1.getData()];
+                case 13:
+                    dbData = _c.sent();
+                    today = new Date().toISOString().substr(0, 10);
+                    console.log(dbData.filter(function (entry) { return new Date(entry.price.regularMarketTime).toISOString().substr(0, 10); }).length > 0);
                     return [2 /*return*/];
             }
         });
