@@ -86,4 +86,13 @@ export class Utils {
     return adjustedDate.toISOString().substr(0, 10);
   }
 
+  public static toCsvString<T, U>(objs: T[], map: (o: T) => U[]) {
+    let output = '';
+    for (const obj of objs) {
+      output += map(obj).join(',');
+      output += '\r\n';
+    }
+    return output;
+  }
+
 }

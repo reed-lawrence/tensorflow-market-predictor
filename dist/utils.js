@@ -85,6 +85,15 @@ var Utils = /** @class */ (function () {
         }
         return adjustedDate.toISOString().substr(0, 10);
     };
+    Utils.toCsvString = function (objs, map) {
+        var output = '';
+        for (var _i = 0, objs_1 = objs; _i < objs_1.length; _i++) {
+            var obj = objs_1[_i];
+            output += map(obj).join(',');
+            output += '\r\n';
+        }
+        return output;
+    };
     return Utils;
 }());
 exports.Utils = Utils;

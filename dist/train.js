@@ -47,9 +47,10 @@ var tf = __importStar(require("@tensorflow/tfjs-node"));
 var mathjs_1 = require("mathjs");
 var get_data_1 = require("./methods/get-data");
 var utils_1 = require("./utils");
+var fs = __importStar(require("fs"));
 function train() {
     return __awaiter(this, void 0, void 0, function () {
-        var data, subsamples, filteredData, ys, beta, trending, shortRatio, preMarketChange, a, b, c, s, p, o, f, loss, learningRate, optimizer, i, preds, diffs;
+        var data, subsamples, filteredData, ys, beta, trending, shortRatio, preMarketChange, a, b, c, s, p, o, f, loss, learningRate, optimizer, i, preds, diffs, resultsArray, csvString;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -144,6 +145,7 @@ function train() {
                     }
                     preds = f(beta, trending, shortRatio, preMarketChange).dataSync();
                     diffs = [];
+                    resultsArray = [];
                     preds.forEach(function (pred, i) {
                         var expected = pred;
                         var actual = filteredData[i].deltaHigh;
@@ -153,9 +155,12 @@ function train() {
                         if (actual !== 0) {
                             percent = (diff / Math.abs(expected)) * 100;
                         }
-                        console.log("i: " + i + ", pred: " + mathjs_1.round(expected, 3) + ", actual: " + mathjs_1.round(actual, 3) + ", diff: " + mathjs_1.round(diff, 3));
+                        // console.log(`i: ${i}, pred: ${round(expected, 3)}, actual: ${round(actual, 3)}, diff: ${round(diff, 3)}`);
                         // console.log(`${round(expected, 3)},${round(actual, 3)}`);
+                        resultsArray.push({ actual: actual, expected: expected });
                     });
+                    csvString = utils_1.Utils.toCsvString(resultsArray, function (res) { return [res.actual, res.expected]; });
+                    fs.writeFileSync('./storage/training_results.csv', csvString, { encoding: 'utf8' });
                     console.log();
                     console.log("beta: " + a.dataSync() + ", trending: " + b.dataSync() + ", shortRatio: " + s.dataSync() + ", preMarketChange: " + p.dataSync() + ", c: " + c.dataSync());
                     console.log("Avg abs difference: " + mathjs_1.round(mathjs_1.mean(diffs.map(function (d) { return Math.abs(d); })), 2));

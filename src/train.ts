@@ -2,6 +2,7 @@ import * as tf from '@tensorflow/tfjs-node';
 import { mean, std, round } from 'mathjs';
 import { getData } from './methods/get-data';
 import { Utils } from './utils';
+import * as fs from 'fs';
 
 
 
@@ -144,6 +145,7 @@ export async function train() {
   const preds = f(beta, trending, shortRatio, preMarketChange).dataSync();
 
   const diffs: number[] = [];
+  const resultsArray: { actual: number; expected: number }[] = []
   preds.forEach((pred: number, i: number) => {
     const expected = pred;
     const actual = filteredData[i].deltaHigh;
@@ -154,10 +156,14 @@ export async function train() {
     if (actual !== 0) {
       percent = (diff / Math.abs(expected)) * 100;
     }
-    console.log(`i: ${i}, pred: ${round(expected, 3)}, actual: ${round(actual, 3)}, diff: ${round(diff, 3)}`);
+    // console.log(`i: ${i}, pred: ${round(expected, 3)}, actual: ${round(actual, 3)}, diff: ${round(diff, 3)}`);
     // console.log(`${round(expected, 3)},${round(actual, 3)}`);
+    resultsArray.push({ actual, expected });
 
   });
+
+  const csvString = Utils.toCsvString(resultsArray, (res) => [res.actual, res.expected]);
+  fs.writeFileSync('./storage/training_results.csv', csvString, { encoding: 'utf8' });
   console.log();
   console.log(`beta: ${a.dataSync()}, trending: ${b.dataSync()}, shortRatio: ${s.dataSync()}, preMarketChange: ${p.dataSync()}, c: ${c.dataSync()}`);
   console.log(`Avg abs difference: ${round(mean(diffs.map(d => Math.abs(d))), 2)}`);
