@@ -88,7 +88,7 @@ export async function train() {
   });
 
   // const filteredData = subsamples.filter(sample => sample.beta && sample.deltaHigh && sample.preMarketChange && sample.shortRatio && sample.trending);
-  const filteredData = subsamples.filter(sample => sample.deltaHigh && sample.open && sample.open < 30 && sample.shortRatio && sample.beta && sample.trending);
+  const filteredData = subsamples.filter(sample => sample.deltaHigh && sample.open && sample.open < 10 && sample.shortRatio && sample.beta && sample.trending);
   // const filteredData = subsamples;
 
   console.log(`Training data length: ${filteredData.length}`);

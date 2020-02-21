@@ -113,7 +113,7 @@ function train() {
                             open: open
                         };
                     });
-                    filteredData = subsamples.filter(function (sample) { return sample.deltaHigh && sample.open && sample.open < 30 && sample.shortRatio && sample.beta && sample.trending; });
+                    filteredData = subsamples.filter(function (sample) { return sample.deltaHigh && sample.open && sample.open < 10 && sample.shortRatio && sample.beta && sample.trending; });
                     // const filteredData = subsamples;
                     console.log("Training data length: " + filteredData.length);
                     ys = tf.tensor1d(filteredData.map(function (o) { return o.deltaHigh; }));
