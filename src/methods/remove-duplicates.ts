@@ -1,18 +1,13 @@
-import { getData } from "./methods/get-data";
 
-import { IApiResult } from "./interfaces/api-result";
 
-import { createConnection } from "mysql";
+import { Connection } from 'mysql';
 
-import { MySqlQuery, queryFormat } from "./mysql/mysql-query";
+import { IApiResult } from '../interfaces/api-result';
+import { GetDataFromDb } from './get-data-from-db';
+import { MySqlQuery } from '../mysql/mysql-query';
 
-export async function dedupe() {
-  const data = await getData();
-  for (let i = 0; i < 45; i++) {
-    const date = new Date(2020, 0, i).toISOString().substr(0, 10);
-    const dayData = data.filter(entry => new Date(entry.price.regularMarketTime).toISOString().substr(0, 10) == date);
-    console.log(date, dayData.length);
-  }
+export async function RemoveDuplicates(dbconn: Connection) {
+  const data = await GetDataFromDb(dbconn);
 
   const entryArrays: IApiResult[][] = [];
   for (const entry of data) {
@@ -34,15 +29,6 @@ export async function dedupe() {
 
   console.log(entryArrays.length, dupes.length);
 
-
-  const dbconn = createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '2v&kJe^jf%!&jG>WiwieFReVLEeydmqGWV.o)mvp83W7,mz]rrv!rq3!C7hL6o+h',
-    database: 'market_data',
-    queryFormat
-  });
-
   for (const collection of dupes) {
     for (const entry of collection) {
       console.log(entry.price.symbol, entry.price.regularMarketTime);
@@ -58,12 +44,4 @@ export async function dedupe() {
       console.log(`${collection[i].id} deleted`);
     }
   }
-
-  dbconn.end();
 }
-
-dedupe().then(() => {
-  console.log('Done!');
-}).catch(err => {
-  console.error(err);
-})

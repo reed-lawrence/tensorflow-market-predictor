@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var symbols_1 = require("./symbols");
 var Utils = /** @class */ (function () {
     function Utils() {
     }
@@ -12,22 +11,9 @@ var Utils = /** @class */ (function () {
         arr.forEach(function (num) { return total += num; });
         return total / arr.length;
     };
-    Utils.distinctSymbols = function () {
-        var output = [];
-        var _loop_1 = function (symbol) {
-            if (output.findIndex(function (s) { return s === symbol; }) === -1) {
-                output.push(symbol);
-            }
-        };
-        for (var _i = 0, symbols_2 = symbols_1.symbols; _i < symbols_2.length; _i++) {
-            var symbol = symbols_2[_i];
-            _loop_1(symbol);
-        }
-        return output;
-    };
     Utils.distinct = function (arr, predicate) {
         var output = [];
-        var _loop_2 = function (obj) {
+        var _loop_1 = function (obj) {
             var result = predicate(obj);
             if (output.findIndex(function (o) { return o === result; }) === -1) {
                 output.push(result);
@@ -35,7 +21,7 @@ var Utils = /** @class */ (function () {
         };
         for (var _i = 0, arr_1 = arr; _i < arr_1.length; _i++) {
             var obj = arr_1[_i];
-            _loop_2(obj);
+            _loop_1(obj);
         }
         return output;
     };

@@ -10,16 +10,6 @@ export class Utils {
     return total / arr.length;
   }
 
-  public static distinctSymbols() {
-    const output: string[] = [];
-    for (const symbol of symbols) {
-      if (output.findIndex(s => s === symbol) === -1) {
-        output.push(symbol);
-      }
-    }
-    return output;
-  }
-
   public static distinct<T, U>(arr: T[], predicate: (o: T) => U): U[] {
     const output: U[] = [];
     for (const obj of arr) {

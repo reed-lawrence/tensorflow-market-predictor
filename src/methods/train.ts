@@ -1,10 +1,11 @@
-import * as tf from '@tensorflow/tfjs-node';
-import { mean, std, round } from 'mathjs';
-import { getData } from './methods/get-data';
-import { Utils } from './utils';
 import * as fs from 'fs';
+import { mean, round, std } from 'mathjs';
+import { Connection } from 'mysql';
 
+import * as tf from '@tensorflow/tfjs-node';
 
+import { IApiResult } from '../interfaces/api-result';
+import { Utils } from '../utils';
 
 export type Subsample = {
   symbol: string;
@@ -16,10 +17,8 @@ export type Subsample = {
   open: number;
 }
 
-export async function train() {
+export async function Train(data: IApiResult[], dbconn: Connection) {
   console.clear();
-
-  const data = await getData();
 
   const subsamples: Subsample[] = data.map(entry => {
     let deltaHigh = 0, beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0, open = 0, symbol = entry.price.symbol;
@@ -87,9 +86,18 @@ export async function train() {
 
   });
 
-  // const filteredData = subsamples.filter(sample => sample.beta && sample.deltaHigh && sample.preMarketChange && sample.shortRatio && sample.trending);
-  const filteredData = subsamples.filter(sample => sample.deltaHigh && sample.open && sample.open < 10 && sample.shortRatio && sample.beta && sample.trending);
-  // const filteredData = subsamples;
+
+  const filterFn: (o: Subsample) => boolean = (o: Subsample) => {
+    const exists = (o: any) => o !== null && o !== undefined;
+
+    return exists(o.deltaHigh) &&
+      exists(o.open) && o.open < 10 &&
+      exists(o.shortRatio) &&
+      exists(o.beta) &&
+      exists(o.trending);
+  };
+
+  const filteredData = subsamples.filter(sample => filterFn(sample));
 
   console.log(`Training data length: ${filteredData.length}`);
   const ys = tf.tensor1d(filteredData.map(o => o.deltaHigh));
@@ -171,7 +179,3 @@ export async function train() {
   console.log(`Avg open: ${mean(filteredData.map(d => d.open))}`);
   return;
 }
-
-train().then(() => { console.log('Done!'); }).catch(err => {
-  console.error(err);
-});

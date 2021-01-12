@@ -4,12 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "mine": "npm run build && node ./dist/index.js",
+    "get-latest": "npm run build && node ./dist/index.js --pull --store --dedupe --validate",
     "test": "npm run build && node ./dist/test.js",
     "build": "rm -r ./dist && tsc",
-    "train": "npm run build && node ./dist/train.js",
+    "train": "npm run build && node ./dist/index.js --get --train",
     "get-data": "npm run build && node ./dist/get-current-data.js",
-    "rank": "npm run build && node ./dist/rank.js",
+    "rank": "npm run build && node ./dist/index.js --pull --rank",
     "migrate": "npm run build && node ./dist/migrate.js",
     "watch": "npm run build && node ./dist/watch.js",
     "validate": "npm run build && node ./dist/validate.js",
@@ -18,15 +18,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@tensorflow/tfjs-node": "^1.5.1",
-    "@types/mathjs": "^6.0.2",
-    "mathjs": "^6.4.0",
-    "mysql": "^2.17.1",
-    "request": "^2.88.0",
+    "@tensorflow/tfjs-node": "^1.7.4",
+    "@types/mathjs": "^6.0.9",
+    "mathjs": "^6.6.5",
+    "mysql": "^2.18.1",
+    "request": "^2.88.2",
     "yahoo-finance": "^0.3.6"
   },
   "devDependencies": {
-    "@types/mysql": "^2.15.8",
-    "@types/request": "^2.48.4"
+    "@types/mysql": "^2.15.17",
+    "@types/request": "^2.48.5"
   }
 }

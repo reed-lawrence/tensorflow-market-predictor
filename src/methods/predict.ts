@@ -1,4 +1,4 @@
-import { Subsample } from "../rank";
+import { Subsample } from "./rank";
 
 export function predict(sample: Subsample): number {
 
@@ -17,9 +17,9 @@ export function predict(sample: Subsample): number {
   //   0.45660850405693054;
 
   // Model for open < 30
-  return (sample.beta * 0.0664888545870781) +
-    (sample.trending * -0.028685137629508972) +
-    (sample.shortRatio * 0.0066666980274021626) +
-    (sample.preMarketChange * -0.030463572591543198) +
-    0.05689915269613266;
+  return (sample.beta * 0.03695319965481758) +
+    (sample.trending * -0.0019687723834067583) +
+    (sample.shortRatio * 0.0058707380667328835) +
+    (sample.preMarketChange * 0.0046966648660600185) +
+    0.04630623757839203;
 }
