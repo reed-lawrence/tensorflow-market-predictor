@@ -1,25 +1,13 @@
-import { Subsample } from "./rank";
+import { IModel, Subsample } from "./train";
+import * as fs from 'fs';
 
 export function predict(sample: Subsample): number {
 
-  // Percent change model
-  // return (sample.beta * 0.43913936614990234) +
-  //   (sample.trending * 0.2725888788700104) +
-  //   (sample.shortRatio * 0.07221806049346924) +
-  //   (sample.preMarketChange * -0.22439055144786835) +
-  //   1.0478475093841553;
+  const model: IModel = JSON.parse(fs.readFileSync('./storage/training_model.json', { encoding: 'utf8' }));
 
-  // Raw delta model
-  // return (sample.beta * 0.28961578011512756) +
-  //   (sample.trending * 0.6951797604560852) +
-  //   (sample.shortRatio * -0.009811404161155224) +
-  //   (sample.preMarketChange * -0.45400524139404297) +
-  //   0.45660850405693054;
-
-  // Model for open < 30
-  return (sample.beta * 0.03695319965481758) +
-    (sample.trending * -0.0019687723834067583) +
-    (sample.shortRatio * 0.0058707380667328835) +
-    (sample.preMarketChange * 0.0046966648660600185) +
-    0.04630623757839203;
+  return (sample.beta * model.beta) +
+    (sample.trending * model.trending) +
+    (sample.shortRatio * model.shortRatio) +
+    (sample.preMarketChange * model.preMarketChange) +
+    model.c;
 }

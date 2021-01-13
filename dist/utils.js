@@ -26,19 +26,29 @@ var Utils = /** @class */ (function () {
         return output;
     };
     ;
-    Utils.getFromDate = function (target, n, collection) {
+    Utils.getFromDate = function (target, n, collection, targetMatchFor, collectionMatchFor) {
+        if (targetMatchFor === void 0) { targetMatchFor = 'regularMarketTime'; }
+        if (collectionMatchFor === void 0) { collectionMatchFor = 'regularMarketTime'; }
         if (n === 0) {
             throw new Error('n should not be 0 in getFromDate');
         }
-        var targetDate = new Date(target.price.regularMarketTime);
-        // console.log(`From date: ${targetDate.toISOString().substr(0, 10)}`);
+        if (!target.price[targetMatchFor]) {
+            throw new Error("No key matching price." + targetMatchFor + " in " + target.price.symbol);
+        }
+        // console.log(target.price);
+        var d = Utils.toSimpleDate(target.price[targetMatchFor]);
+        var targetDate = d.value;
+        // console.log(`From date: ${d.str}`);
         // const newDate = new Date(targetDate.setDate(targetDate.getDate() + n)).toISOString().substr(0, 10)
         var newDateStr = this.getFromDateStr(targetDate, n);
-        // console.log(`Looking for date ${newDate}`);
+        // console.log(`Looking for date ${newDateStr}`);
         for (var _i = 0, collection_1 = collection; _i < collection_1.length; _i++) {
             var entry = collection_1[_i];
             if (target.price.symbol === entry.price.symbol) {
-                var entryDateStr = new Date(entry.price.regularMarketTime).toISOString().substr(0, 10);
+                if (!entry.price[collectionMatchFor]) {
+                    throw new Error("No key matching price." + collectionMatchFor + " in " + entry.price.symbol);
+                }
+                var entryDateStr = Utils.toSimpleDate(entry.price[collectionMatchFor]).str;
                 if (entryDateStr === newDateStr) {
                     return entry;
                 }
@@ -53,23 +63,35 @@ var Utils = /** @class */ (function () {
         // Date should only consider M-F days
         var adjustedDate = new Date(targetDate.setDate(targetDate.getDate() + n));
         // If the adjusted date is a sunday or saturday
-        if (adjustedDate.getDay() === 0 || adjustedDate.getDay() === 6) {
-            // Adjust the date until it is is a weekday
-            for (var i = 0; i < 2; i++) {
-                // If looking backwards - it should move the date backwards (Sunday -> Friday)
-                if (n < 0) {
-                    adjustedDate = new Date(adjustedDate.setDate(adjustedDate.getDate() - 1));
-                }
-                else {
-                    adjustedDate = new Date(adjustedDate.setDate(adjustedDate.getDate() + 1));
-                }
-                // If the date is now valid, exit the loop;
-                if (adjustedDate.getDay() > 0 && adjustedDate.getDay() < 6) {
-                    i = 2;
-                }
-            }
+        if (adjustedDate.getDay() === 0) {
+            adjustedDate.setDate(adjustedDate.getDate() - 2);
+        }
+        else if (adjustedDate.getDay() === 6) {
+            adjustedDate.setDate(adjustedDate.getDate() - 1);
         }
         return adjustedDate.toISOString().substr(0, 10);
+    };
+    Utils.toSimpleDate = function (isoString) {
+        if (isoString) {
+            try {
+                var parsed = isoString.split('T')[0];
+                var split = parsed.split('-');
+                var year = parseInt(split[0]);
+                var month = parseInt(split[1]);
+                var date = parseInt(split[2]);
+                var value = new Date(year, month, date);
+                var str = value.toISOString().substr(0, 10);
+                return {
+                    str: str,
+                    year: year,
+                    month: month,
+                    date: date,
+                    value: value
+                };
+            }
+            catch (_a) { }
+        }
+        throw new Error("Cannot parse date: " + isoString);
     };
     Utils.toCsvString = function (objs, map) {
         var output = '';
@@ -83,3 +105,4 @@ var Utils = /** @class */ (function () {
     return Utils;
 }());
 exports.Utils = Utils;
+//# sourceMappingURL=utils.js.map

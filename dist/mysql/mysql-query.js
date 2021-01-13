@@ -66,3 +66,4 @@ var MySqlQuery = /** @class */ (function () {
     return MySqlQuery;
 }());
 exports.MySqlQuery = MySqlQuery;
+//# sourceMappingURL=mysql-query.js.map

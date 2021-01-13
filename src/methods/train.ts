@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { mean, round, std } from 'mathjs';
+import { filter, mean, median, mod, mode, round, std } from 'mathjs';
 import { Connection } from 'mysql';
 
 import * as tf from '@tensorflow/tfjs-node';
@@ -7,7 +7,7 @@ import * as tf from '@tensorflow/tfjs-node';
 import { IApiResult } from '../interfaces/api-result';
 import { Utils } from '../utils';
 
-export type Subsample = {
+export interface Subsample {
   symbol: string;
   deltaHigh: number;
   beta: number;
@@ -17,52 +17,65 @@ export type Subsample = {
   open: number;
 }
 
-export async function Train(data: IApiResult[], dbconn: Connection) {
-  console.clear();
+export interface IModel {
+  beta: number;
+  trending: number;
+  shortRatio: number;
+  preMarketChange: number;
+  c: number;
+}
 
-  const subsamples: Subsample[] = data.map(entry => {
-    let deltaHigh = 0, beta = 0, trending = 0, shortRatio = 0, preMarketChange = 0, open = 0, symbol = entry.price.symbol;
-    const prevDayData = Utils.getFromDate(entry, -1, data);
+export function SubsampleMap(data: IApiResult[], historicalData: IApiResult[] = data, stage: 'premarket' | 'postmarket' = 'postmarket') {
 
-    // Delta high that predicts next day data
-    // const nextDayEntry = Utils.getFromDate(entry, 1, data);
-    // if (
-    //   nextDayEntry &&
-    //   typeof nextDayEntry.price.regularMarketDayHigh === 'number' &&
-    //   typeof entry.price.regularMarketOpen === 'number'
-    // ) {
-    //   deltaHigh = nextDayEntry.price.regularMarketDayHigh - entry.price.regularMarketOpen;
-    // }
+  console.log(`SubsampleMap stage: ${stage}`);
+  console.log(`SubsampleMap targetData: ${data.length} entries`);
+  console.log(`SubsampleMap historicalData: ${historicalData.length} entries`);
 
-    // Delta high that predicts current day data
+  var subsamples: Partial<Subsample>[] = data.map(entry => {
+
+    let deltaHigh: number | undefined;
+    let beta: number | undefined;
+    let trending: number | undefined;
+    let shortRatio: number | undefined;
+    let preMarketChange: number | undefined;
+    let open: number | undefined;
+    let symbol = entry.price.symbol;
+
+    const prevDayData = Utils.getFromDate(entry, -1, historicalData);
+
+    // Delta high that predicts current day data as a percentile of the stock price
     if (typeof entry.price.regularMarketOpen === 'number' && typeof entry.price.regularMarketDayHigh === 'number') {
-      deltaHigh = entry.price.regularMarketDayHigh - entry.price.regularMarketOpen;
+      deltaHigh = ((entry.price.regularMarketDayHigh - entry.price.regularMarketOpen) / entry.price.regularMarketOpen) * 100;
       open = entry.price.regularMarketOpen;
     }
-
-    // Delta high that predicts current day data based on percent change
-    // if (typeof entry.price.regularMarketOpen === 'number' && typeof entry.price.regularMarketDayHigh === 'number') {
-    //   deltaHigh = 100 - ((entry.price.regularMarketOpen / entry.price.regularMarketDayHigh) * 100);
-    // }
 
     if (entry.defaultKeyStatistics && entry.defaultKeyStatistics.beta) {
       if (typeof entry.defaultKeyStatistics.beta === 'number') {
         beta = entry.defaultKeyStatistics.beta;
       } else {
-        beta = entry.defaultKeyStatistics.beta.raw || 0;
+        beta = entry.defaultKeyStatistics.beta.raw || undefined;
       }
     }
 
-    // This trending val works for training, but does not work for prediction
-    // if (typeof entry.price.regularMarketPrice === 'number' && typeof entry.price.regularMarketPreviousClose === 'number') {
-    //   trending = entry.price.regularMarketPrice - entry.price.regularMarketPreviousClose;
-    // }
-
-
     // Trending relies on previous day data
-    if (prevDayData && prevDayData.price.regularMarketPreviousClose && entry.price.regularMarketPreviousClose) {
-      if (typeof prevDayData.price.regularMarketPreviousClose === 'number' && typeof entry.price.regularMarketPreviousClose === 'number') {
-        trending = entry.price.regularMarketPreviousClose - prevDayData.price.regularMarketPreviousClose;
+    if (prevDayData && prevDayData.price.regularMarketPreviousClose) {
+      if (typeof prevDayData.price.regularMarketPreviousClose === 'number') {
+
+        if (stage === 'premarket') {
+
+          // For pre-market data, use regular Market Price as it was the last closing price
+          if (typeof entry.price.regularMarketPrice === 'number') {
+            trending = entry.price.regularMarketPrice - prevDayData.price.regularMarketPreviousClose;
+          }
+
+        } else {
+
+          if (entry.price.regularMarketPreviousClose && typeof entry.price.regularMarketPreviousClose === 'number') {
+            trending = entry.price.regularMarketPreviousClose - prevDayData.price.regularMarketPreviousClose;
+          }
+
+        }
+
       }
     }
 
@@ -83,21 +96,31 @@ export async function Train(data: IApiResult[], dbconn: Connection) {
       symbol,
       open
     }
-
   });
 
-
-  const filterFn: (o: Subsample) => boolean = (o: Subsample) => {
+  const filterFn: (o: Partial<Subsample>) => boolean = (o: Partial<Subsample>) => {
     const exists = (o: any) => o !== null && o !== undefined;
 
     return exists(o.deltaHigh) &&
-      exists(o.open) && o.open < 10 &&
+      exists(o.open) && typeof o.open === 'number' && o.open <= 100 &&
       exists(o.shortRatio) &&
       exists(o.beta) &&
-      exists(o.trending);
+      exists(o.trending) &&
+      exists(o.preMarketChange);
   };
 
-  const filteredData = subsamples.filter(sample => filterFn(sample));
+  return subsamples.filter(o => filterFn(o)) as Subsample[];
+
+}
+
+export async function Train(data: IApiResult[], dbconn: Connection) {
+  console.clear();
+
+  const subsamples = SubsampleMap(data);
+
+  const filteredData = subsamples.filter(o => o);
+
+  // console.log(filteredData);
 
   console.log(`Training data length: ${filteredData.length}`);
   const ys = tf.tensor1d(filteredData.map(o => o.deltaHigh));
@@ -141,11 +164,11 @@ export async function Train(data: IApiResult[], dbconn: Connection) {
 
   const loss = (pred: any, label: any) => pred.sub(label).square().mean();
 
-  const learningRate = 0.001;
+  const learningRate = 0.00001;
   const optimizer = tf.train.sgd(learningRate);
 
   // Train the model.
-  for (let i = 0; i < 1000; i++) {
+  for (let i = 0; i < 10000; i++) {
     optimizer.minimize(() => loss(f(beta, trending, shortRatio, preMarketChange), ys));
   }
 
@@ -173,9 +196,20 @@ export async function Train(data: IApiResult[], dbconn: Connection) {
   const csvString = Utils.toCsvString(resultsArray, (res) => [res.actual, res.expected]);
   fs.writeFileSync('./storage/training_results.csv', csvString, { encoding: 'utf8' });
   console.log();
-  console.log(`beta: ${a.dataSync()}, trending: ${b.dataSync()}, shortRatio: ${s.dataSync()}, preMarketChange: ${p.dataSync()}, c: ${c.dataSync()}`);
+
+  const model: IModel = {
+    beta: a.dataSync()[0],
+    trending: b.dataSync()[0],
+    shortRatio: s.dataSync()[0],
+    preMarketChange: p.dataSync()[0],
+    c: c.dataSync()[0]
+  };
+  fs.writeFileSync('./storage/training_model.json', JSON.stringify(model), { encoding: 'utf8' });
+
+  console.log(`beta: ${model.beta}, trending: ${model.trending}, shortRatio: ${model.shortRatio}, preMarketChange: ${model.preMarketChange}, c: ${model.c}`);
   console.log(`Avg abs difference: ${round(mean(diffs.map(d => Math.abs(d))), 2)}`);
   console.log(`Std Deviation: ${round(std(diffs), 3)}`);
   console.log(`Avg open: ${mean(filteredData.map(d => d.open))}`);
+
   return;
 }

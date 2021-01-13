@@ -8,6 +8,7 @@
     "test": "npm run build && node ./dist/test.js",
     "build": "rm -r ./dist && tsc",
     "train": "npm run build && node ./dist/index.js --get --train",
+    "train-dynamic": "npm run build && node ./dist/index.js --get --train-dynamic",
     "get-data": "npm run build && node ./dist/get-current-data.js",
     "rank": "npm run build && node ./dist/index.js --pull --rank",
     "migrate": "npm run build && node ./dist/migrate.js",

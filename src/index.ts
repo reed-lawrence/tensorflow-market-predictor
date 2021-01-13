@@ -11,6 +11,7 @@ import { ValidateData } from './methods/validate-data';
 import { GetDataFromDb } from './methods/get-data-from-db';
 import { Train } from './methods/train';
 import { Rank } from './methods/rank';
+import { TrainDynamic } from './methods/train-dynamic';
 
 export async function Main() {
 
@@ -32,36 +33,41 @@ export async function Main() {
       // Get data from yahoo
       if (arg === '--pull') {
         data = await GetDailyData(Targets);
-      } 
-      
+      }
+
       // Get data from the database
       else if (arg === '--get') {
         data = await GetDataFromDb(dbconn);
-      } 
-      
+      }
+
       // Store the data to the database
       else if (arg === '--store') {
         await StoreData(data, chartData, dbconn);
-      } 
+      }
       // Validate that the data was stored to the database
       else if (arg === '--validate') {
         await ValidateData(data, dbconn);
-      } 
-      
+      }
+
       // Remove any duplicates in the database
       else if (arg === '--dedupe') {
         await RemoveDuplicates(dbconn);
-      } 
-      
+      }
+
       // Run the training algo
       else if (arg === '--train') {
         await Train(data, dbconn);
       }
 
-      else if(arg === '--rank'){
+      // Run the ranking algo
+      else if (arg === '--rank') {
         await Rank(data, dbconn);
       }
-      
+
+      else if (arg === '--train-dynamic') {
+        await TrainDynamic(data);
+      }
+
     }
 
   } catch (e) {

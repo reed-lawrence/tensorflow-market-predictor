@@ -1,6 +1,7 @@
 
 import { IApiResult } from '../interfaces/api-result';
 import * as fs from 'fs';
+import { Utils } from '../utils';
 const yahooFinance = require('yahoo-finance');
 
 export interface IDailyDataCache {
@@ -9,6 +10,7 @@ export interface IDailyDataCache {
 }
 
 export async function GetDailyData(symbols: string[]) {
+
 
   const cache: IDailyDataCache = JSON.parse(fs.readFileSync('./storage/current-data.json', { encoding: 'utf8' }));
 
@@ -19,7 +21,7 @@ export async function GetDailyData(symbols: string[]) {
   }
 
   const data: IApiResult[] = [];
-  for (const symbol of symbols) {
+  for (const symbol of Utils.distinct(symbols, o => o)) {
     console.log(`Getting data for ${symbol}...`);
     try {
       const results: IApiResult = await yahooFinance.quote({

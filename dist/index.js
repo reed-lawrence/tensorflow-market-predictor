@@ -46,6 +46,7 @@ var validate_data_1 = require("./methods/validate-data");
 var get_data_from_db_1 = require("./methods/get-data-from-db");
 var train_1 = require("./methods/train");
 var rank_1 = require("./methods/rank");
+var train_dynamic_1 = require("./methods/train-dynamic");
 function Main() {
     return __awaiter(this, void 0, void 0, function () {
         var dbconn, args, data, chartData, _i, args_1, arg, e_1;
@@ -64,62 +65,68 @@ function Main() {
                     chartData = [];
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 18, , 19]);
+                    _a.trys.push([1, 20, , 21]);
                     _i = 0, args_1 = args;
                     _a.label = 2;
                 case 2:
-                    if (!(_i < args_1.length)) return [3 /*break*/, 17];
+                    if (!(_i < args_1.length)) return [3 /*break*/, 19];
                     arg = args_1[_i];
                     if (!(arg === '--pull')) return [3 /*break*/, 4];
                     return [4 /*yield*/, get_daily_data_1.GetDailyData(symbols_1.symbols)];
                 case 3:
                     data = _a.sent();
-                    return [3 /*break*/, 16];
+                    return [3 /*break*/, 18];
                 case 4:
                     if (!(arg === '--get')) return [3 /*break*/, 6];
                     return [4 /*yield*/, get_data_from_db_1.GetDataFromDb(dbconn)];
                 case 5:
                     data = _a.sent();
-                    return [3 /*break*/, 16];
+                    return [3 /*break*/, 18];
                 case 6:
                     if (!(arg === '--store')) return [3 /*break*/, 8];
                     return [4 /*yield*/, store_data_1.StoreData(data, chartData, dbconn)];
                 case 7:
                     _a.sent();
-                    return [3 /*break*/, 16];
+                    return [3 /*break*/, 18];
                 case 8:
                     if (!(arg === '--validate')) return [3 /*break*/, 10];
                     return [4 /*yield*/, validate_data_1.ValidateData(data, dbconn)];
                 case 9:
                     _a.sent();
-                    return [3 /*break*/, 16];
+                    return [3 /*break*/, 18];
                 case 10:
                     if (!(arg === '--dedupe')) return [3 /*break*/, 12];
                     return [4 /*yield*/, remove_duplicates_1.RemoveDuplicates(dbconn)];
                 case 11:
                     _a.sent();
-                    return [3 /*break*/, 16];
+                    return [3 /*break*/, 18];
                 case 12:
                     if (!(arg === '--train')) return [3 /*break*/, 14];
                     return [4 /*yield*/, train_1.Train(data, dbconn)];
                 case 13:
                     _a.sent();
-                    return [3 /*break*/, 16];
+                    return [3 /*break*/, 18];
                 case 14:
                     if (!(arg === '--rank')) return [3 /*break*/, 16];
                     return [4 /*yield*/, rank_1.Rank(data, dbconn)];
                 case 15:
                     _a.sent();
-                    _a.label = 16;
+                    return [3 /*break*/, 18];
                 case 16:
+                    if (!(arg === '--train-dynamic')) return [3 /*break*/, 18];
+                    return [4 /*yield*/, train_dynamic_1.TrainDynamic(data)];
+                case 17:
+                    _a.sent();
+                    _a.label = 18;
+                case 18:
                     _i++;
                     return [3 /*break*/, 2];
-                case 17: return [3 /*break*/, 19];
-                case 18:
+                case 19: return [3 /*break*/, 21];
+                case 20:
                     e_1 = _a.sent();
                     console.error(e_1);
-                    return [3 /*break*/, 19];
-                case 19:
+                    return [3 /*break*/, 21];
+                case 21:
                     ;
                     dbconn.end();
                     return [2 /*return*/];
@@ -131,3 +138,4 @@ exports.Main = Main;
 Main().finally(function () {
     console.log('Done!');
 });
+//# sourceMappingURL=index.js.map
